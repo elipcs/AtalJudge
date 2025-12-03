@@ -1,0 +1,151 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Testing
+coverage/
+.nyc_output/
+*.test.ts
+*.spec.ts
+__tests__/
+test/
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# Credentials and secrets
+*.json
+!package.json
+!tsconfig.json
+!components.json
+!next-env.d.ts
+!.eslintrc.json
+!jest.config.js
+credentials/
+*.pem
+*.key
+*.crt
+.env
+.env.local
+.env.*.local
+ataljudge-a237e23e866c.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.vscode/settings.json
+.vscode/launch.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.iml
+.DS_Store
+Thumbs.db
+*.sublime-workspace
+*.sublime-project
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitattributes
+
+# CI/CD
+.github/workflows/secrets/
+.gitlab-ci.yml.local
+.circleci/secrets/
+
+# Logs
+logs/
+*.log
+lerna-debug.log*
+npm-debug.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+.cache/
+
+# Docker
+docker-compose.local.yml
+docker-compose.prod.yml
+docker-compose.override.yml
+
+# Documentation (local notes)
+docs/private/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.npm
+.eslintcache
+
+# IDE and Editor
+.vscode/
+.idea/
+.DS_Store
+*.iml
+*.sublime-project
+*.sublime-workspace
+.vim/
+.netrwhist
+*~
+
+# Misc
+*.bak
+*.swp
+*.swo
+*~
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
+
+# Env files
+.env.local
+.env.production.local
+.env.test.local

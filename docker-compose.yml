@@ -1,0 +1,193 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    depends_on:
+      - backend
+    restart: always
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  backend-db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_USER=${DB_USERNAME:-ataljudge}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-ataljudge_password}
+      - POSTGRES_DB=${DB_DATABASE:-ataljudge}
+    volumes:
+      - backend-db-data:/var/lib/postgresql/data
+    restart: always
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-ataljudge}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3333:3333"
+    environment:
+      - PORT=3333
+      - NODE_ENV=production
+      - DB_HOST=${DB_HOST:-backend-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USERNAME=${DB_USERNAME:-ataljudge}
+      - DB_PASSWORD=${DB_PASSWORD:-ataljudge_password}
+      - DB_DATABASE=${DB_DATABASE:-ataljudge}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - JUDGE0_API_URL=http://judge0-server:2358
+      - TEST_CASE_MANAGER_API_URL=http://test-case-manager:8000
+    depends_on:
+      - backend-db
+    restart: always
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3333/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  test-case-manager:
+    build:
+      context: ./test-case-manager
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_FALLBACK_API_KEY=${GEMINI_FALLBACK_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3-pro-preview}
+      - USE_VERTEX_AI=${USE_VERTEX_AI:-false}
+      - VERTEX_AI_PROJECT_ID=${VERTEX_AI_PROJECT_ID}
+      - VERTEX_AI_LOCATION=${VERTEX_AI_LOCATION:-us-central1}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/service-account-key.json
+      - HOST=0.0.0.0
+      - PORT=8000
+      - ATALJUDGE_API_URL=http://backend:3333/api
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - CODE_TIMEOUT_SECONDS=${CODE_TIMEOUT_SECONDS:-5}
+      - MAX_TEST_CASES=${MAX_TEST_CASES:-50}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3333}
+    depends_on:
+      - backend
+    restart: always
+    mem_limit: 512m
+  judge0-server:
+    build:
+      context: ./judge0-minimal
+      dockerfile: Dockerfile
+    image: judge0-minimal:latest
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    ports:
+      - "2358:2358"
+    privileged: true
+    environment:
+      - REDIS_HOST=judge0-redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${JUDGE0_DB_USER:-judge0}
+      - POSTGRES_PASSWORD=${JUDGE0_DB_PASSWORD:-judge0_change_me}
+      - POSTGRES_DB=${JUDGE0_DB_NAME:-judge0}
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    restart: always
+    mem_limit: 1024m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2358 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60sR=judge0
+      - POSTGRES_PASSWORD=judge0
+      - POSTGRES_DB=judge0
+  judge0-workers:
+    build:
+      context: ./judge0-minimal
+      dockerfile: Dockerfile
+    image: judge0-minimal:latest
+    command: [ "./scripts/workers" ]
+    privileged: true
+    environment:
+      - REDIS_HOST=judge0-redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${JUDGE0_DB_USER:-judge0}
+      - POSTGRES_PASSWORD=${JUDGE0_DB_PASSWORD:-judge0_change_me}
+      - POSTGRES_DB=${JUDGE0_DB_NAME:-judge0}
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    restart: always
+    mem_limit: 1024m
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "judge0-redis", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30sSWORD=judge0
+      - POSTGRES_DB=judge0
+  judge0-db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_USER=${JUDGE0_DB_USER:-judge0}
+      - POSTGRES_PASSWORD=${JUDGE0_DB_PASSWORD:-judge0_change_me}
+      - POSTGRES_DB=${JUDGE0_DB_NAME:-judge0}
+    volumes:
+      - judge0-db-data:/var/lib/postgresql/data
+    restart: always
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${JUDGE0_DB_USER:-judge0}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40sER=judge0
+      - POSTGRES_PASSWORD=judge0
+      - POSTGRES_DB=judge0
+    volumes:
+      - judge0-db-data:/var/lib/postgresql/data
+    restart: always
+    mem_limit: 512m
+
+  judge0-redis:
+    image: redis:6-alpine
+    command: [ "redis-server", "--appendonly", "yes" ]
+    volumes:
+      - judge0-redis-data:/data
+    restart: always
+    mem_limit: 256m
+
+volumes:
+  backend-db-data:
+  judge0-db-data:
+  judge0-redis-data:
