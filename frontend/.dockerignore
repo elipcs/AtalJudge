@@ -1,0 +1,12 @@
+node_modules
+dist
+.next
+*.log
+.git
+.gitignore
+README.md
+test
+docs
+*.tsbuildinfo
+*.map
+.env
