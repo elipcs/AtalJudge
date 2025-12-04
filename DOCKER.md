@@ -203,8 +203,10 @@ ataljudge/
 | Backend | 3333 | Express API |
 | Test Case Manager | 8000 | FastAPI Generator |
 | Judge0 Server | 2358 | Code Execution Engine |
-| PostgreSQL | 5432 | Database (internal) |
-| Redis | 6379 | Cache (internal) |
+| Backend PostgreSQL | 5432 | Backend Database (internal) |
+| Backend Redis | 6379 | Backend Cache & Queues (internal) |
+| Judge0 PostgreSQL | 5432 | Judge0 Database (internal) |
+| Judge0 Redis | 6379 | Judge0 Cache & Queues (internal) |
 
 ## Support
 

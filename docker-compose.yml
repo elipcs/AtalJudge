@@ -39,6 +39,25 @@ services:
       retries: 3
       start_period: 40s
 
+  backend-redis:
+    image: redis:6-alpine
+    command: 
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - "${REDIS_PASSWORD:-}"
+    volumes:
+      - backend-redis-data:/data
+    restart: always
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   backend:
     build:
       context: ./backend
@@ -53,16 +72,17 @@ services:
       - DB_USERNAME=${DB_USERNAME:-ataljudge}
       - DB_PASSWORD=${DB_PASSWORD:-ataljudge_password}
       - DB_DATABASE=${DB_DATABASE:-ataljudge}
-      - SECRET_KEY=${SECRET_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - SECRET_KEY=${SECRET_KEY:-change_this_secret_key_in_production}
+      - JWT_SECRET=${JWT_SECRET:-change_this_jwt_secret_in_production}
+      - REDIS_HOST=${REDIS_HOST:-backend-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
       - JUDGE0_API_URL=http://judge0-server:2358
       - TEST_CASE_MANAGER_API_URL=http://test-case-manager:8000
     depends_on:
       - backend-db
+      - backend-redis
     restart: always
     mem_limit: 512m
     healthcheck:
@@ -79,18 +99,18 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GEMINI_FALLBACK_API_KEY=${GEMINI_FALLBACK_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_FALLBACK_API_KEY=${GEMINI_FALLBACK_API_KEY:-}
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3-pro-preview}
       - USE_VERTEX_AI=${USE_VERTEX_AI:-false}
-      - VERTEX_AI_PROJECT_ID=${VERTEX_AI_PROJECT_ID}
+      - VERTEX_AI_PROJECT_ID=${VERTEX_AI_PROJECT_ID:-}
       - VERTEX_AI_LOCATION=${VERTEX_AI_LOCATION:-us-central1}
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/service-account-key.json
       - HOST=0.0.0.0
       - PORT=8000
       - ATALJUDGE_API_URL=http://backend:3333/api
-      - SECRET_KEY=${SECRET_KEY}
-      - JWT_SECRET=${JWT_SECRET}
+      - SECRET_KEY=${SECRET_KEY:-change_this_secret_key_in_production}
+      - JWT_SECRET=${JWT_SECRET:-change_this_jwt_secret_in_production}
       - CODE_TIMEOUT_SECONDS=${CODE_TIMEOUT_SECONDS:-5}
       - MAX_TEST_CASES=${MAX_TEST_CASES:-50}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3333}
@@ -99,10 +119,7 @@ services:
     restart: always
     mem_limit: 512m
   judge0-server:
-    build:
-      context: ./judge0-minimal
-      dockerfile: Dockerfile
-    image: judge0-minimal:latest
+    image: judge0/judge0:1.13.1
     volumes:
       - ./judge0.conf:/judge0.conf:ro
     ports:
@@ -126,15 +143,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60sR=judge0
-      - POSTGRES_PASSWORD=judge0
-      - POSTGRES_DB=judge0
+      start_period: 60s
+
   judge0-workers:
-    build:
-      context: ./judge0-minimal
-      dockerfile: Dockerfile
-    image: judge0-minimal:latest
-    command: [ "./scripts/workers" ]
+    image: judge0/judge0:1.13.1
+    command: ["./scripts/workers"]
     privileged: true
     environment:
       - REDIS_HOST=judge0-redis
@@ -154,8 +167,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30sSWORD=judge0
-      - POSTGRES_DB=judge0
+      start_period: 30s
+
   judge0-db:
     image: postgres:13-alpine
     environment:
@@ -171,13 +184,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40sER=judge0
-      - POSTGRES_PASSWORD=judge0
-      - POSTGRES_DB=judge0
-    volumes:
-      - judge0-db-data:/var/lib/postgresql/data
-    restart: always
-    mem_limit: 512m
+      start_period: 40s
 
   judge0-redis:
     image: redis:6-alpine
@@ -189,5 +196,6 @@ services:
 
 volumes:
   backend-db-data:
+  backend-redis-data:
   judge0-db-data:
   judge0-redis-data:

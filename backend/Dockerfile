@@ -2,7 +2,7 @@ FROM node:20-slim AS builder
 WORKDIR /app
 COPY package*.json ./
 # Install dependencies (including devDependencies for tsc)
-RUN npm ci
+RUN npm install
 COPY . .
 RUN npm run build
 
@@ -11,6 +11,6 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY package*.json ./
 # Install only production dependencies
-RUN npm ci --production
+RUN npm install --omit=dev
 EXPOSE 3333
-CMD ["node", "dist/app.js"]
+CMD ["node", "dist/server.js"]

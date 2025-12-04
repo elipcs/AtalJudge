@@ -3,6 +3,7 @@
  * @description Service for interacting with the Code-Contests-Plus dataset API via test-case-manager microservice
  * Communicates with the import_database module for importing test cases from dataset
  */
+import { injectable } from 'tsyringe';
 import axios, { AxiosInstance } from 'axios';
 import { 
   DatasetProblemDTO, 
@@ -15,22 +16,22 @@ import logger from '../utils/logger';
  * Service for searching and retrieving problems from Code-Contests-Plus dataset
  * Connects to test-case-manager's import_database module via /api/import/* endpoints
  */
+@injectable()
 export class DatasetService {
   private apiClient: AxiosInstance;
   private baseUrl: string;
   private jwtToken: string;
 
-  constructor(jwtToken?: string) {
+  constructor() {
     // Get test-case-manager API URL from environment
     this.baseUrl = process.env.TEST_CASE_MANAGER_URL || 'http://localhost:8000';
-    this.jwtToken = jwtToken || '';
+    this.jwtToken = '';
     
     this.apiClient = axios.create({
       baseURL: this.baseUrl,
       timeout: 30000, // 30 seconds timeout
       headers: {
-        'Content-Type': 'application/json',
-        ...(this.jwtToken ? { 'Authorization': `Bearer ${this.jwtToken}` } : {})
+        'Content-Type': 'application/json'
       }
     });
 

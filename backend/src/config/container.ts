@@ -69,6 +69,8 @@ import {
   GetAllQuestionsUseCase,
   SearchQuestionsUseCase
 } from '../use-cases/question';
+import { ImportDatasetProblemUseCase } from '../use-cases/question/ImportDatasetProblemUseCase';
+import { BulkImportDatasetUseCase } from '../use-cases/question/BulkImportDatasetUseCase';
 import {
   CreateSubmissionUseCase,
   GetSubmissionUseCase,
@@ -195,6 +197,8 @@ export function setupContainer(): void {
   container.registerSingleton(GetQuestionByIdUseCase);
   container.registerSingleton(GetAllQuestionsUseCase);
   container.registerSingleton(SearchQuestionsUseCase);
+  container.registerSingleton(ImportDatasetProblemUseCase);
+  container.registerSingleton(BulkImportDatasetUseCase);
   container.registerSingleton(CreateSubmissionUseCase);
   container.registerSingleton(GetSubmissionUseCase);
   container.registerSingleton(GetAllSubmissionsUseCase);

@@ -73,7 +73,7 @@ AtalJudge consists of four main microservices:
 2. **Backend** (Node.js 20 + Express + TypeScript)
    - RESTful API with JWT authentication
    - PostgreSQL database with TypeORM
-   - Redis for caching and queues
+   - Dedicated Redis for caching and queues
    - Email notifications
 
 3. **Test Case Manager** (Python 3.10 + FastAPI)
@@ -96,7 +96,7 @@ AtalJudge consists of four main microservices:
 - **Node.js 20+** (for local development)
 - **Python 3.10+** (for test case manager)
 - **PostgreSQL 13+** (if not using Docker)
-- **Redis** (optional, for production features)
+- **Redis 6+** (included in Docker setup)
 
 ### Installation
 
@@ -324,10 +324,10 @@ JWT_SECRET=your_jwt_secret
 JUDGE0_API_URL=http://judge0-server:2358
 TEST_CASE_MANAGER_API_URL=http://test-case-manager:8000
 
-# Redis (optional)
-REDIS_HOST=redis
+# Backend Redis (separate from Judge0 Redis)
+REDIS_HOST=backend-redis
 REDIS_PORT=6379
-REDIS_PASSWORD=
+REDIS_PASSWORD=your_redis_password
 
 # Email (optional)
 SMTP_HOST=smtp.gmail.com
@@ -548,6 +548,12 @@ docker-compose exec backend-db psql -U ataljudge
 
 # Connect to judge0 database
 docker-compose exec judge0-db psql -U judge0
+
+# Connect to backend Redis
+docker-compose exec backend-redis redis-cli -a your_redis_password
+
+# Connect to judge0 Redis
+docker-compose exec judge0-redis redis-cli
 ```
 
 ### Logs

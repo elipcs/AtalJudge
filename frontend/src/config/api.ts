@@ -29,7 +29,26 @@ interface RequestConfig extends RequestInit {
   signal?: AbortSignal;
 }
 
-export const API_BASE_URL = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE_URL) || 'http://localhost:3333/api';
+// Get API base URL - works in both server and browser contexts
+function getApiBaseUrl(): string {
+  // Try environment variable first (build-time)
+  if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  
+  // In browser, use window.location.origin to get the current host
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol;
+    const host = window.location.hostname;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    return `${protocol}//${host}${port === ':3000' ? ':3333' : port}/api`;
+  }
+  
+  // Fallback for server-side rendering
+  return 'http://localhost:3333/api';
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 async function apiClient<T>(
   endpoint: string,

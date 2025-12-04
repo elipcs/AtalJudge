@@ -21,8 +21,9 @@ import { logger } from '../utils';
  * - Entity and migration auto-discovery
  * - Query logging in development mode
  */
-// Detect if using local database (judge0-db, localhost) or external (AWS RDS)
-const isLocalDatabase = config.database.host === 'judge0-db' ||
+// Detect if using local database (backend-db, judge0-db, localhost) or external (AWS RDS)
+const isLocalDatabase = config.database.host === 'backend-db' ||
+  config.database.host === 'judge0-db' ||
   config.database.host === 'localhost' ||
   config.database.host === '127.0.0.1';
 

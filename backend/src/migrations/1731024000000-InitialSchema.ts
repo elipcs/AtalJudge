@@ -111,7 +111,7 @@ export class InitialSchema1731024000000 implements MigrationInterface {
         "is_restricted" boolean DEFAULT false,
         "count_toward_score" boolean DEFAULT true,
         "created_at" timestamp with time zone NOT NULL DEFAULT now(),
-        "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
+        "updated_at" timestamp with time zone NOT NULL DEFAULT now()
       )
     `);
 
@@ -134,7 +134,7 @@ export class InitialSchema1731024000000 implements MigrationInterface {
         "source" varchar(200),
         "tags" jsonb DEFAULT '[]',
         "created_at" timestamp with time zone NOT NULL DEFAULT now(),
-        "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
+        "updated_at" timestamp with time zone NOT NULL DEFAULT now()
       )
     `);
 

@@ -2,7 +2,7 @@
  * @module use-cases/testcase/ImportTestCasesFromDatasetUseCase
  * @description Use case for importing test cases from Code-Contests-Plus dataset
  */
-import { injectable } from 'tsyringe';
+import { injectable, inject } from 'tsyringe';
 import { DatasetService } from '../../services/DatasetService';
 import { TestCaseRepository } from '../../repositories/TestCaseRepository';
 import { QuestionRepository } from '../../repositories/QuestionRepository';
@@ -19,9 +19,9 @@ import { AppError } from '../../utils/errors';
 @injectable()
 export class ImportTestCasesFromDatasetUseCase {
   constructor(
-    private datasetService: DatasetService,
-    private testCaseRepository: TestCaseRepository,
-    private questionRepository: QuestionRepository
+    @inject(DatasetService) private datasetService: DatasetService,
+    @inject(TestCaseRepository) private testCaseRepository: TestCaseRepository,
+    @inject(QuestionRepository) private questionRepository: QuestionRepository
   ) {}
 
   /**
