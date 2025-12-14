@@ -8,7 +8,6 @@ import { Router, Response } from 'express';
 import multer from 'multer';
 import { CreateTestCaseDTO, UpdateTestCaseDTO } from '../dtos';
 import { BulkUpdateTestCasesDTO } from '../dtos/TestCaseDtos';
-import { GenerateTestCasesDTO } from '../dtos/TestCaseGeneratorDtos';
 import { validateBody, authenticate, requireTeacher, AuthRequest } from '../middlewares';
 import { successResponse } from '../utils/responses';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -22,11 +21,7 @@ import {
   DeleteTestCaseUseCase
 } from '../use-cases/testcase';
 import { BulkUpdateTestCasesUseCase } from '../use-cases/testcase/BulkUpdateTestCasesUseCase';
-import { GenerateTestCasesUseCase } from '../use-cases/testcase/GenerateTestCasesUseCase';
-import { ImportTestCasesFromDatasetUseCase } from '../use-cases/testcase/ImportTestCasesFromDatasetUseCase';
 import { ImportTestCasesFromFileUseCase } from '../use-cases/testcase/ImportTestCasesFromFileUseCase';
-import { DatasetService } from '../services/DatasetService';
-import { ImportTestCasesFromDatasetDTO } from '../dtos/DatasetDtos';
 
 // Configure multer for file upload
 const upload = multer({
@@ -69,10 +64,7 @@ function createTestCaseController(
   updateTestCaseUseCase: UpdateTestCaseUseCase,
   deleteTestCaseUseCase: DeleteTestCaseUseCase,
   bulkUpdateTestCasesUseCase: BulkUpdateTestCasesUseCase,
-  generateTestCasesUseCase: GenerateTestCasesUseCase,
-  importTestCasesFromDatasetUseCase: ImportTestCasesFromDatasetUseCase,
-  importTestCasesFromFileUseCase: ImportTestCasesFromFileUseCase,
-  datasetService: DatasetService
+  importTestCasesFromFileUseCase: ImportTestCasesFromFileUseCase
 ): Router {
   const router = Router();
 
@@ -189,89 +181,6 @@ function createTestCaseController(
   );
 
   /**
-   * POST /questions/:questionId/testcases/generate
-   * Generate test cases automatically using oracle code via microservice
-   */
-  router.post(
-    '/questions/:questionId/testcases/generate',
-    authenticate,
-    requireTeacher,
-    validateBody(GenerateTestCasesDTO),
-    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-      // Extract JWT token from Authorization header
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        throw new Error('Authorization header is required');
-      }
-      const jwtToken = authHeader.substring(7); // Remove 'Bearer ' prefix
-
-      const result = await generateTestCasesUseCase.execute({
-        questionId: req.params.questionId,
-        dto: req.body,
-        jwtToken: jwtToken
-      });
-
-      successResponse(res, result, 'Test cases generated and saved successfully');
-    })
-  );
-
-  /**
-   * GET /dataset/search
-   * Search for problems in the Code-Contests-Plus dataset
-   */
-  router.get(
-    '/dataset/search',
-    authenticate,
-    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-      const query = req.query.query as string;
-      const config = (req.query.config as string) || '1x';
-      const limit = parseInt(req.query.limit as string) || 20;
-
-      if (!query) {
-        throw new AppError('Query parameter is required', 400);
-      }
-
-      const results = await datasetService.searchProblemsByTitle(query, config, limit);
-      successResponse(res, results, 'Dataset problems');
-    })
-  );
-
-  /**
-   * GET /dataset/problem/:problemId
-   * Get detailed information about a dataset problem
-   */
-  router.get(
-    '/dataset/problem/:problemId',
-    authenticate,
-    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-      const config = (req.query.config as string) || '1x';
-
-      const problem = await datasetService.getProblemDetails(req.params.problemId, config);
-      successResponse(res, problem, 'Dataset problem details');
-    })
-  );
-
-  /**
-   * GET /dataset/problem/:problemId/testcases
-   * Get test case preview for a dataset problem
-   */
-  router.get(
-    '/dataset/problem/:problemId/testcases',
-    authenticate,
-    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-      const config = (req.query.config as string) || '1x';
-      const limit = parseInt(req.query.limit as string) || 5;
-
-      const testCases = await datasetService.getTestCasesPreview(
-        req.params.problemId,
-        config,
-        limit
-      );
-      successResponse(res, testCases, 'Test cases preview');
-    })
-  );
-
-  /**
  * POST /questions/:questionId/testcases/import
  * Import test cases from JSON or CSV file
  */
@@ -305,34 +214,6 @@ function createTestCaseController(
       } else {
         successResponse(res, result, `Successfully imported ${result.imported} test cases`);
       }
-    })
-  );
-
-  /**
-   * POST /questions/:questionId/testcases/import-from-dataset
-   * Import test cases from a dataset problem
-   */
-  router.post(
-    '/questions/:questionId/testcases/import-from-dataset',
-    authenticate,
-    requireTeacher,
-    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-      const dto: ImportTestCasesFromDatasetDTO = {
-        questionTitle: req.body.questionTitle,
-        config: req.body.config || '1x',
-        testCasesToImport: req.body.testCasesToImport
-      };
-
-      if (!dto.questionTitle) {
-        throw new AppError('questionTitle is required', 400);
-      }
-
-      const testCases = await importTestCasesFromDatasetUseCase.execute(
-        req.params.questionId,
-        dto
-      );
-
-      successResponse(res, testCases, 'Test cases imported successfully from dataset');
     })
   );
 

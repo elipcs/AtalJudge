@@ -5,7 +5,6 @@ import {
     ImportQuestionsFromCsvDTO,
     ImportQuestionsFromCsvResponseDTO,
     CsvQuestionRow,
-    CsvImportError,
     CsvImportResult
 } from '../../dtos';
 import { QuestionRepository, TestCaseRepository } from '../../repositories';

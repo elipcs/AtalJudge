@@ -1,0 +1,71 @@
+title,text,timeLimitMs,memoryLimitKb,source,tags,testCaseInput,testCaseExpectedOutput,testCaseWeight
+Soma de Dois Números,"Escreva um programa que leia dois números inteiros e imprima a soma deles.
+
+**Entrada:**
+A entrada consiste de uma linha contendo dois números inteiros A e B separados por espaço.
+
+**Saída:**
+Imprima a soma de A e B.",1000,64000,Exemplo Básico,"matemática,iniciante",5 3,8,10
+Soma de Dois Números,"Escreva um programa que leia dois números inteiros e imprima a soma deles.
+
+**Entrada:**
+A entrada consiste de uma linha contendo dois números inteiros A e B separados por espaço.
+
+**Saída:**
+Imprima a soma de A e B.",1000,64000,Exemplo Básico,"matemática,iniciante",10 20,30,10
+Soma de Dois Números,"Escreva um programa que leia dois números inteiros e imprima a soma deles.
+
+**Entrada:**
+A entrada consiste de uma linha contendo dois números inteiros A e B separados por espaço.
+
+**Saída:**
+Imprima a soma de A e B.",1000,64000,Exemplo Básico,"matemática,iniciante",-5 5,0,10
+Fatorial,"Calcule o fatorial de um número N.
+
+**Entrada:**
+Um número inteiro N (0 ≤ N ≤ 12).
+
+**Saída:**
+Imprima o fatorial de N.",2000,64000,Matemática Básica,"matemática,recursão",5,120,20
+Fatorial,"Calcule o fatorial de um número N.
+
+**Entrada:**
+Um número inteiro N (0 ≤ N ≤ 12).
+
+**Saída:**
+Imprima o fatorial de N.",2000,64000,Matemática Básica,"matemática,recursão",0,1,20
+Fatorial,"Calcule o fatorial de um número N.
+
+**Entrada:**
+Um número inteiro N (0 ≤ N ≤ 12).
+
+**Saída:**
+Imprima o fatorial de N.",2000,64000,Matemática Básica,"matemática,recursão",3,6,20
+Palíndromo,"Verifique se uma string é um palíndromo (lê-se igual de trás para frente).
+
+**Entrada:**
+Uma string S contendo apenas letras minúsculas (1 ≤ |S| ≤ 1000).
+
+**Saída:**
+Imprima 'SIM' se a string é um palíndromo, 'NAO' caso contrário.",1500,64000,Strings,"strings,algoritmos",arara,SIM,15
+Palíndromo,"Verifique se uma string é um palíndromo (lê-se igual de trás para frente).
+
+**Entrada:**
+Uma string S contendo apenas letras minúsculas (1 ≤ |S| ≤ 1000).
+
+**Saída:**
+Imprima 'SIM' se a string é um palíndromo, 'NAO' caso contrário.",1500,64000,Strings,"strings,algoritmos",hello,NAO,15
+Palíndromo,"Verifique se uma string é um palíndromo (lê-se igual de trás para frente).
+
+**Entrada:**
+Uma string S contendo apenas letras minúsculas (1 ≤ |S| ≤ 1000).
+
+**Saída:**
+Imprima 'SIM' se a string é um palíndromo, 'NAO' caso contrário.",1500,64000,Strings,"strings,algoritmos",ovo,SIM,15
+Palíndromo,"Verifique se uma string é um palíndromo (lê-se igual de trás para frente).
+
+**Entrada:**
+Uma string S contendo apenas letras minúsculas (1 ≤ |S| ≤ 1000).
+
+**Saída:**
+Imprima 'SIM' se a string é um palíndromo, 'NAO' caso contrário.",1500,64000,Strings,"strings,algoritmos",a,SIM,15

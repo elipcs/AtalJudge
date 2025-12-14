@@ -24,9 +24,9 @@ import { RefreshTokenRepository } from '../repositories/RefreshTokenRepository';
 import { PasswordResetTokenRepository } from '../repositories/PasswordResetTokenRepository';
 import { AllowedIPRepository } from '../repositories/AllowedIPRepository';
 
+
 import { EmailService } from '../services/EmailService';
 import { Judge0Service } from '../services/Judge0Service';
-import { TestCaseGeneratorMicroservice } from '../services/TestCaseGeneratorMicroservice';
 import { PasswordResetService } from '../services/PasswordResetService';
 import { RefreshTokenService } from '../services/RefreshTokenService';
 import { InviteService } from '../services/InviteService';
@@ -44,7 +44,6 @@ import { AuthenticationService } from '../services/AuthenticationService';
 import { UserRegistrationService } from '../services/UserRegistrationService';
 import { PasswordManagementService } from '../services/PasswordManagementService';
 import { TokenManagementService } from '../services/TokenManagementService';
-import { DatasetService } from '../services/DatasetService';
 
 // Import all Use Cases
 import {
@@ -69,8 +68,7 @@ import {
   GetAllQuestionsUseCase,
   SearchQuestionsUseCase
 } from '../use-cases/question';
-import { ImportDatasetProblemUseCase } from '../use-cases/question/ImportDatasetProblemUseCase';
-import { BulkImportDatasetUseCase } from '../use-cases/question/BulkImportDatasetUseCase';
+
 import {
   CreateSubmissionUseCase,
   GetSubmissionUseCase,
@@ -121,8 +119,6 @@ import {
   DeleteTestCaseUseCase
 } from '../use-cases/testcase';
 import { BulkUpdateTestCasesUseCase } from '../use-cases/testcase/BulkUpdateTestCasesUseCase';
-import { GenerateTestCasesUseCase } from '../use-cases/testcase/GenerateTestCasesUseCase';
-import { ImportTestCasesFromDatasetUseCase } from '../use-cases/testcase/ImportTestCasesFromDatasetUseCase';
 import { ImportTestCasesFromFileUseCase } from '../use-cases/testcase/ImportTestCasesFromFileUseCase';
 import {
   GetAllAllowedIPsUseCase,
@@ -160,7 +156,6 @@ export function setupContainer(): void {
 
   container.registerSingleton(EmailService);
   container.registerSingleton(Judge0Service);
-  container.registerSingleton(TestCaseGeneratorMicroservice);
   container.registerSingleton(PasswordResetService);
   container.registerSingleton(RefreshTokenService);
   container.registerSingleton(InviteService);
@@ -179,7 +174,6 @@ export function setupContainer(): void {
   container.registerSingleton(SubmissionQueueService);
   container.register('SubmissionQueueService', { useToken: SubmissionQueueService });
   container.registerSingleton(SubmissionService);
-  container.registerSingleton(DatasetService);
 
   // Register all Use Cases
   container.registerSingleton(LoginUseCase);
@@ -198,8 +192,6 @@ export function setupContainer(): void {
   container.registerSingleton(GetQuestionByIdUseCase);
   container.registerSingleton(GetAllQuestionsUseCase);
   container.registerSingleton(SearchQuestionsUseCase);
-  container.registerSingleton(ImportDatasetProblemUseCase);
-  container.registerSingleton(BulkImportDatasetUseCase);
   container.registerSingleton(CreateSubmissionUseCase);
   container.registerSingleton(GetSubmissionUseCase);
   container.registerSingleton(GetAllSubmissionsUseCase);
@@ -238,8 +230,6 @@ export function setupContainer(): void {
   container.registerSingleton(UpdateTestCaseUseCase);
   container.registerSingleton(DeleteTestCaseUseCase);
   container.registerSingleton(BulkUpdateTestCasesUseCase);
-  container.registerSingleton(GenerateTestCasesUseCase);
-  container.registerSingleton(ImportTestCasesFromDatasetUseCase);
   container.registerSingleton(ImportTestCasesFromFileUseCase);
   container.registerSingleton(GetAllAllowedIPsUseCase);
   container.registerSingleton(GetAllowedIPByIdUseCase);

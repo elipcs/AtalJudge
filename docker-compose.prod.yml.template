@@ -1,11 +1,9 @@
+# Docker Hub Deployment Template
+# Copy this file to docker-compose.prod.yml and configure your environment variables in .env
+
 services:
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    image: elipcs/ataljudge-frontend:latest
     ports:
       - "3000:3000"
     environment:
@@ -15,12 +13,6 @@ services:
       - backend
     restart: always
     mem_limit: 512m
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000 || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   backend-db:
     image: postgres:13-alpine
@@ -32,16 +24,10 @@ services:
       - backend-db-data:/var/lib/postgresql/data
     restart: always
     mem_limit: 512m
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-ataljudge}" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   backend-redis:
     image: redis:6-alpine
-    command:
+    command: 
       - redis-server
       - --appendonly
       - "yes"
@@ -51,17 +37,9 @@ services:
       - backend-redis-data:/data
     restart: always
     mem_limit: 256m
-    healthcheck:
-      test: [ "CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-}", "ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: elipcs/ataljudge-backend:latest
     ports:
       - "3333:3333"
     environment:
@@ -84,12 +62,6 @@ services:
       - backend-redis
     restart: always
     mem_limit: 512m
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3333/health || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   judge0-server:
     image: judge0/judge0:1.13.1
@@ -111,16 +83,10 @@ services:
       - judge0-redis
     restart: always
     mem_limit: 1024m
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:2358 || exit 1" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   judge0-workers:
     image: judge0/judge0:1.13.1
-    command: [ "./scripts/workers" ]
+    command: ["./scripts/workers"]
     privileged: true
     environment:
       - REDIS_HOST=judge0-redis
@@ -135,12 +101,6 @@ services:
       - judge0-redis
     restart: always
     mem_limit: 1024m
-    healthcheck:
-      test: [ "CMD", "redis-cli", "-h", "judge0-redis", "ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
 
   judge0-db:
     image: postgres:13-alpine
@@ -152,12 +112,6 @@ services:
       - judge0-db-data:/var/lib/postgresql/data
     restart: always
     mem_limit: 512m
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${JUDGE0_DB_USER:-judge0}" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   judge0-redis:
     image: redis:6-alpine

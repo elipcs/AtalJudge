@@ -80,7 +80,6 @@ export class ImportTestCasesFromFileUseCase {
                     input: tc.input.toString(),
                     expectedOutput: tc.output.toString(),
                     weight: 10,
-                    order: i,
                 });
 
                 result.imported++;

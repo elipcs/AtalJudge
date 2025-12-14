@@ -9,6 +9,10 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue?style=flat&logo=postgresql)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=flat&logo=docker)](https://www.docker.com/)
 
+[![Docker Hub Frontend](https://img.shields.io/docker/v/elipcs/ataljudge-frontend?label=frontend&logo=docker)](https://hub.docker.com/r/elipcs/ataljudge-frontend)
+[![Docker Hub Backend](https://img.shields.io/docker/v/elipcs/ataljudge-backend?label=backend&logo=docker)](https://hub.docker.com/r/elipcs/ataljudge-backend)
+[![Docker Hub TCM](https://img.shields.io/docker/v/elipcs/ataljudge-test-case-manager?label=test-case-manager&logo=docker)](https://hub.docker.com/r/elipcs/ataljudge-test-case-manager)
+
 AtalJudge is a comprehensive online judge platform designed for educational institutions. It combines powerful code execution, intelligent test case generation using AI, and a modern user interface to create an exceptional learning experience for competitive programming.
 
 ## ✨ Key Features
@@ -100,7 +104,36 @@ AtalJudge consists of four main microservices:
 
 ### Installation
 
-#### Option 1: Docker (Recommended)
+#### Option 1: Docker Hub Images (Fastest! ⚡)
+
+Deploy in 3 commands using pre-built images:
+
+```bash
+# 1. Download deployment files
+curl -o docker-compose.yml https://raw.githubusercontent.com/elipcs/AtalJudge/main/docker-compose.prod.yml.template
+curl -o .env https://raw.githubusercontent.com/elipcs/AtalJudge/main/.env.example
+
+# 2. Edit .env with your configuration
+nano .env  # Set passwords and Gemini API key
+
+# 3. Start services
+docker-compose up -d
+```
+
+**OR use the quick-deploy script:**
+
+```bash
+wget -qO- https://raw.githubusercontent.com/elipcs/AtalJudge/main/scripts/quick-deploy.sh | bash
+```
+
+Access at: http://localhost:3000
+
+📚 Full guide: [DEPLOYMENT.md](./DEPLOYMENT.md)  
+🐳 Docker Hub: [DOCKER_HUB.md](./DOCKER_HUB.md)
+
+---
+
+#### Option 2: Build from Source (Development)
 
 1. **Clone the repository**
    ```bash
