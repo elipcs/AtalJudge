@@ -11,7 +11,6 @@
 
 [![Docker Hub Frontend](https://img.shields.io/docker/v/elipcs/ataljudge-frontend?label=frontend&logo=docker)](https://hub.docker.com/r/elipcs/ataljudge-frontend)
 [![Docker Hub Backend](https://img.shields.io/docker/v/elipcs/ataljudge-backend?label=backend&logo=docker)](https://hub.docker.com/r/elipcs/ataljudge-backend)
-[![Docker Hub TCM](https://img.shields.io/docker/v/elipcs/ataljudge-test-case-manager?label=test-case-manager&logo=docker)](https://hub.docker.com/r/elipcs/ataljudge-test-case-manager)
 
 AtalJudge is a comprehensive online judge platform designed for educational institutions. It combines powerful code execution, intelligent test case generation using AI, and a modern user interface to create an exceptional learning experience for competitive programming.
 
@@ -20,8 +19,7 @@ AtalJudge is a comprehensive online judge platform designed for educational inst
 ### 🎯 Core Functionality
 - **Multi-Language Support** - Execute code in 60+ programming languages via Judge0
 - **Real-Time Judging** - Instant feedback on code submissions with detailed results
-- **Smart Test Case Generation** - AI-powered test case creation using Google Gemini
-- **Dataset Integration** - Import test cases from Code-Contests-Plus dataset (13,500+ problems)
+- **Test Case Management** - Create and manage test cases with JSON/CSV import support
 - **Local Execution** - Run code locally for testing before submission
 
 ### 👥 User Management
@@ -44,7 +42,7 @@ AtalJudge is a comprehensive online judge platform designed for educational inst
 
 ## 🏗️ Architecture
 
-AtalJudge consists of four main microservices:
+AtalJudge consists of three main components:
 
 ```
 ┌─────────────────┐      ┌─────────────────┐
@@ -55,15 +53,14 @@ AtalJudge consists of four main microservices:
 │                 │      │                 │
 └─────────────────┘      └────────┬────────┘
                                   │
-                    ┌─────────────┼─────────────┐
-                    │             │             │
-         ┌──────────▼────────┐   │   ┌─────────▼──────────┐
-         │                   │   │   │                    │
-         │  Test Case Mgr    │◄──┘   │      Judge0        │
-         │   (FastAPI)       │       │  (Code Execution)  │
-         │   Port: 8000      │       │   Port: 2358       │
-         │                   │       │                    │
-         └───────────────────┘       └────────────────────┘
+                                  │
+                         ┌────────▼────────┐
+                         │                 │
+                         │     Judge0      │
+                         │ (Code Execution)│
+                         │   Port: 2358    │
+                         │                 │
+                         └─────────────────┘
 ```
 
 ### Components
@@ -80,13 +77,7 @@ AtalJudge consists of four main microservices:
    - Dedicated Redis for caching and queues
    - Email notifications
 
-3. **Test Case Manager** (Python 3.10 + FastAPI)
-   - AI-powered test case generation with Google Gemini
-   - Code-Contests-Plus dataset integration
-   - Smart input format inference
-   - Secure code execution sandbox
-
-4. **Judge0** (Ruby + Docker)
+3. **Judge0** (Ruby + Docker)
    - Multi-language code execution engine
    - Secure sandboxed environment
    - Resource limit enforcement
@@ -98,7 +89,6 @@ AtalJudge consists of four main microservices:
 
 - **Docker** & **Docker Compose** (recommended)
 - **Node.js 20+** (for local development)
-- **Python 3.10+** (for test case manager)
 - **PostgreSQL 13+** (if not using Docker)
 - **Redis 6+** (included in Docker setup)
 
@@ -198,7 +188,6 @@ Access at: http://localhost:3000
 8. **Access the application**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3333
-   - Test Case Manager: http://localhost:8000
    - Judge0: http://localhost:2358
 
 #### Option 2: Local Development
@@ -231,20 +220,10 @@ Access at: http://localhost:3000
    npm run dev
    ```
 
-4. **Setup Test Case Manager**
-   ```bash
-   cd ../test-case-manager
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   cp .env.example .env
-   # Configure .env with Gemini API key
-   python run.py
-   ```
 
-5. **Setup Judge0**
+
+4. **Setup Judge0**
    - Follow the [Judge0 installation guide](https://github.com/judge0/judge0/blob/master/CHANGELOG.md)
-   - Or use the minimal Docker setup in `judge0-minimal/`
 
 </details>
 
@@ -288,8 +267,7 @@ Access at: http://localhost:3000
    - Time and memory limits
 3. Add test cases:
    - **Manual**: Enter input/output pairs directly
-   - **AI Generation**: Use Gemini to generate test cases from your description
-   - **Dataset Import**: Import from Code-Contests-Plus dataset
+   - **JSON/CSV Import**: Import test cases from files
 4. Save and publish
 
 #### Managing Classes
@@ -355,9 +333,8 @@ JWT_SECRET=your_jwt_secret
 
 # Services
 JUDGE0_API_URL=http://judge0-server:2358
-TEST_CASE_MANAGER_API_URL=http://test-case-manager:8000
 
-# Backend Redis (separate from Judge0 Redis)
+# Backend Redis
 REDIS_HOST=backend-redis
 REDIS_PORT=6379
 REDIS_PASSWORD=your_redis_password
@@ -379,28 +356,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3333
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3333/api
 ```
 
-#### Test Case Manager (`test-case-manager/.env`)
 
-```env
-# Server
-HOST=0.0.0.0
-PORT=8000
-
-# AtalJudge Integration
-ATALJUDGE_API_URL=http://backend:3333/api
-JWT_SECRET=same_as_backend_jwt_secret
-
-# Google Gemini
-GEMINI_API_KEY=your_gemini_api_key
-GEMINI_MODEL=gemini-2.0-flash-exp
-
-# Execution Limits
-CODE_TIMEOUT_SECONDS=5
-MAX_TEST_CASES=50
-
-# CORS
-CORS_ORIGINS=http://localhost:3000,http://localhost:3333
-```
 
 ### Supported Programming Languages
 
@@ -432,13 +388,7 @@ cd frontend
 npm test
 ```
 
-### Test Case Manager Tests
 
-```bash
-cd test-case-manager
-pytest
-pytest --cov=app tests/
-```
 
 ## 📚 API Documentation
 
@@ -570,7 +520,6 @@ docker-compose up -d --scale judge0-workers=5
 ### Service Health
 
 - Backend: `http://localhost:3333/health`
-- Test Case Manager: `http://localhost:8000/api/health`
 - Judge0: `http://localhost:2358/`
 
 ### Database
@@ -631,14 +580,7 @@ AtalJudge/
 │   │   └── utils/            # Utilities
 │   └── package.json
 │
-├── test-case-manager/         # FastAPI test case service
-│   ├── app/
-│   │   ├── routers/          # API routes
-│   │   ├── services/         # Business logic
-│   │   ├── models/           # Pydantic models
-│   │   └── utils/            # Utilities
-│   ├── tests/                # Tests
-│   └── requirements.txt
+
 │
 ├── judge0-minimal/            # Judge0 setup
 │   └── Dockerfile

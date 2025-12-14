@@ -4,7 +4,6 @@
 
 - `your-username/ataljudge-backend:latest` - Backend API (Express + TypeScript)
 - `your-username/ataljudge-frontend:latest` - Frontend (Next.js)
-- `your-username/ataljudge-test-case-manager:latest` - Test Case Manager (FastAPI)
 
 ## Quickstart
 
@@ -36,9 +35,6 @@ curl http://localhost:3333/health
 
 # Frontend
 curl http://localhost:3000
-
-# Test Case Manager
-curl http://localhost:8000/api/health
 
 # Judge0
 curl http://localhost:2358
@@ -160,12 +156,10 @@ docker login
 docker-compose build
 docker tag ataljudge-backend yourusername/ataljudge-backend:v1.0.0
 docker tag ataljudge-frontend yourusername/ataljudge-frontend:v1.0.0
-docker tag ataljudge-test-case-manager yourusername/ataljudge-test-case-manager:v1.0.0
 
 # Push
 docker push yourusername/ataljudge-backend:v1.0.0
 docker push yourusername/ataljudge-frontend:v1.0.0
-docker push yourusername/ataljudge-test-case-manager:v1.0.0
 
 # Tag as latest
 docker tag yourusername/ataljudge-backend:v1.0.0 yourusername/ataljudge-backend:latest
@@ -184,11 +178,7 @@ ataljudge/
 │   ├── src/
 │   ├── package.json
 │   └── Dockerfile
-├── test-case-manager/     # FastAPI Python
-│   ├── app/
-│   ├── requirements.txt
-│   └── Dockerfile
-├── judge0-minimal/        # Judge0 Server
+├── judge0-minimal/       # Judge0 optional minimal build
 │   └── Dockerfile
 ├── docker-compose.yml     # Orchestration
 ├── .env.example           # Example variables
@@ -201,7 +191,6 @@ ataljudge/
 |---------|------|-------------|
 | Frontend | 3000 | Next.js Application |
 | Backend | 3333 | Express API |
-| Test Case Manager | 8000 | FastAPI Generator |
 | Judge0 Server | 2358 | Code Execution Engine |
 | Backend PostgreSQL | 5432 | Backend Database (internal) |
 | Backend Redis | 6379 | Backend Cache & Queues (internal) |
