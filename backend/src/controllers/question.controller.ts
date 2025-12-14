@@ -5,12 +5,19 @@
  * @class QuestionController
  */
 import { Router, Response } from 'express';
-import { CreateQuestionUseCase, UpdateQuestionUseCase, DeleteQuestionUseCase, GetQuestionByIdUseCase, GetAllQuestionsUseCase, SearchQuestionsUseCase, ImportDatasetProblemUseCase, BulkImportDatasetUseCase } from '../use-cases/question';
+import multer from 'multer';
+import { CreateQuestionUseCase, UpdateQuestionUseCase, DeleteQuestionUseCase, GetQuestionByIdUseCase, GetAllQuestionsUseCase, SearchQuestionsUseCase } from '../use-cases/question';
+import { ImportQuestionsFromCsvUseCase } from '../use-cases/question/ImportQuestionsFromCsvUseCase';
 import { authenticate, requireTeacher, AuthRequest } from '../middlewares';
 import { successResponse } from '../utils/responses';
 import { convertQuestionPayload } from '../middlewares/payload-converter.middleware';
 import { asyncHandler } from '../utils/asyncHandler';
-import { ImportDatasetProblemDTO, BulkImportDatasetDTO } from '../dtos';
+
+// Configure multer for file upload
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 function createQuestionController(
   createQuestionUseCase: CreateQuestionUseCase,
@@ -19,8 +26,7 @@ function createQuestionController(
   getQuestionByIdUseCase: GetQuestionByIdUseCase,
   getAllQuestionsUseCase: GetAllQuestionsUseCase,
   searchQuestionsUseCase: SearchQuestionsUseCase,
-  importDatasetProblemUseCase: ImportDatasetProblemUseCase,
-  bulkImportDatasetUseCase: BulkImportDatasetUseCase
+  importQuestionsFromCsvUseCase: ImportQuestionsFromCsvUseCase
 ): Router {
   const router = Router();
 
@@ -31,46 +37,32 @@ function createQuestionController(
     convertQuestionPayload,
     asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
       const question = await createQuestionUseCase.execute({
-        dto: req.body});
+        dto: req.body
+      });
 
       successResponse(res, question, 'Question created successfully', 201);
     })
   );
 
   router.post(
-    '/import-dataset',
+    '/import-csv',
     authenticate,
     requireTeacher,
+    upload.single('file'),
     asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-      const dto: ImportDatasetProblemDTO = req.body;
-      
-      // Extract JWT token from Authorization header
-      const authHeader = req.headers.authorization;
-      const jwtToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : '';
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: 'No CSV file uploaded'
+        });
+        return;
+      }
 
-      const result = await importDatasetProblemUseCase.execute({
-        ...dto,
-        jwtToken
-      });
+      // Convert buffer to string
+      const csvContent = req.file.buffer.toString('utf-8');
 
-      successResponse(res, result, result.message, 201);
-    })
-  );
-
-  router.post(
-    '/bulk-import-dataset',
-    authenticate,
-    requireTeacher,
-    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-      const dto: BulkImportDatasetDTO = req.body;
-      
-      // Extract JWT token from Authorization header
-      const authHeader = req.headers.authorization;
-      const jwtToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : '';
-
-      const result = await bulkImportDatasetUseCase.execute({
-        ...dto,
-        jwtToken
+      const result = await importQuestionsFromCsvUseCase.execute({
+        csvContent
       });
 
       successResponse(res, result, result.message, 201);

@@ -44,7 +44,8 @@ import {
   ResetPasswordUseCase
 } from './use-cases/auth';
 import { GetUserUseCase, GetUsersByRoleUseCase, UpdateProfileUseCase, ChangePasswordUseCase } from './use-cases/user';
-import { CreateQuestionUseCase, UpdateQuestionUseCase, DeleteQuestionUseCase, GetQuestionByIdUseCase, GetAllQuestionsUseCase, SearchQuestionsUseCase, ImportDatasetProblemUseCase, BulkImportDatasetUseCase } from './use-cases/question';
+import { CreateQuestionUseCase, UpdateQuestionUseCase, DeleteQuestionUseCase, GetQuestionByIdUseCase, GetAllQuestionsUseCase, SearchQuestionsUseCase } from './use-cases/question';
+import { ImportQuestionsFromCsvUseCase } from './use-cases/question/ImportQuestionsFromCsvUseCase';
 import { CreateSubmissionUseCase, GetSubmissionUseCase, GetAllSubmissionsUseCase, GetSubmissionWithResultsUseCase, ResubmitSubmissionUseCase, SearchSubmissionsUseCase } from './use-cases/submission';
 import { GetGradeUseCase, CalculateGradeUseCase, GetStudentGradesUseCase, GetListGradesUseCase, GetGradeByStudentAndListUseCase } from './use-cases/grade';
 import { CreateQuestionListUseCase, GetQuestionListUseCase, UpdateQuestionListUseCase, DeleteQuestionListUseCase, GetAllQuestionListsUseCase, UpdateListScoringUseCase, AddQuestionToListUseCase, RemoveQuestionFromListUseCase } from './use-cases/question-list';
@@ -69,6 +70,9 @@ import {
 import { BulkUpdateTestCasesUseCase } from './use-cases/testcase/BulkUpdateTestCasesUseCase';
 import { GenerateTestCasesUseCase } from './use-cases/testcase/GenerateTestCasesUseCase';
 import { ImportTestCasesFromDatasetUseCase } from './use-cases/testcase/ImportTestCasesFromDatasetUseCase';
+import { ImportTestCasesFromFileUseCase } from './use-cases/testcase/ImportTestCasesFromFileUseCase';
+import { ImportDatasetProblemUseCase } from './use-cases/question/ImportDatasetProblemUseCase';
+import { BulkImportDatasetUseCase } from './use-cases/question/BulkImportDatasetUseCase';
 import { DatasetService } from './services/DatasetService';
 import {
   GetAllAllowedIPsUseCase,
@@ -200,8 +204,7 @@ export function createApp(): Application {
   const getQuestionByIdUseCase = container.resolve(GetQuestionByIdUseCase);
   const getAllQuestionsUseCase = container.resolve(GetAllQuestionsUseCase);
   const searchQuestionsUseCase = container.resolve(SearchQuestionsUseCase);
-  const importDatasetProblemUseCase = container.resolve(ImportDatasetProblemUseCase);
-  const bulkImportDatasetUseCase = container.resolve(BulkImportDatasetUseCase);
+  const importQuestionsFromCsvUseCase = container.resolve(ImportQuestionsFromCsvUseCase);
   const createSubmissionUseCase = container.resolve(CreateSubmissionUseCase);
   const getSubmissionUseCase = container.resolve(GetSubmissionUseCase);
   const getAllSubmissionsUseCase = container.resolve(GetAllSubmissionsUseCase);
@@ -241,15 +244,17 @@ export function createApp(): Application {
   const deleteTestCaseUseCase = container.resolve(DeleteTestCaseUseCase);
   const bulkUpdateTestCasesUseCase = container.resolve(BulkUpdateTestCasesUseCase);
   const generateTestCasesUseCase = container.resolve(GenerateTestCasesUseCase);
-  const importTestCasesFromDatasetUseCase = container.resolve(ImportTestCasesFromDatasetUseCase);
-  const datasetService = container.resolve(DatasetService);
   const getAllAllowedIPsUseCase = container.resolve(GetAllAllowedIPsUseCase);
   const getAllowedIPByIdUseCase = container.resolve(GetAllowedIPByIdUseCase);
   const createAllowedIPUseCase = container.resolve(CreateAllowedIPUseCase);
   const toggleAllowedIPStatusUseCase = container.resolve(ToggleAllowedIPStatusUseCase);
   const deleteAllowedIPUseCase = container.resolve(DeleteAllowedIPUseCase);
   const performSystemResetUseCase = container.resolve(PerformSystemResetUseCase);
-
+  const importTestCasesFromDatasetUseCase = container.resolve(ImportTestCasesFromDatasetUseCase);
+  const importTestCasesFromFileUseCase = container.resolve(ImportTestCasesFromFileUseCase);
+  const importDatasetProblemUseCase = container.resolve(ImportDatasetProblemUseCase);
+  const bulkImportDatasetUseCase = container.resolve(BulkImportDatasetUseCase);
+  const datasetService = container.resolve(DatasetService);
   const submissionService = container.resolve(SubmissionService);
 
   app.use('/api/auth', createAuthController(
@@ -285,6 +290,7 @@ export function createApp(): Application {
     bulkUpdateTestCasesUseCase,
     generateTestCasesUseCase,
     importTestCasesFromDatasetUseCase,
+    importTestCasesFromFileUseCase,
     datasetService
   ));
 

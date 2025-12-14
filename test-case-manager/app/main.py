@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import config
 from app.modules.generator import router as generator_router
-from app.modules.import_database import router as import_router
+# from app.modules.import_database import router as import_router
+from app.routers.import_router import router as bulk_import_router
 from app.utils.logger import logger
 
 
@@ -61,7 +62,8 @@ app.add_middleware(
 
 # Registrar rotas dos módulos
 app.include_router(generator_router)
-app.include_router(import_router)
+# app.include_router(import_router)  # Deprecated: using bulk_import_router instead
+app.include_router(bulk_import_router)
 
 
 @app.get("/")

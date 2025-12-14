@@ -28,18 +28,32 @@ class DatasetService:
         Get dataset with caching (downloads to disk, but doesn't load all in memory)
         """
         if self._dataset is None:
-            logger.info(f"Loading dataset {self.dataset_name} with disk caching...")
+            logger.info(f"📦 Loading dataset {self.dataset_name} (config: {self.config})")
+            logger.info(f"📂 Cache directory: ./dataset_cache")
+            logger.info(f"⏳ This may take a few minutes on first run...")
+            
             try:
+                import sys
+                # Enable progress bar output
+                logger.info(f"🔄 Starting dataset download...")
+                
                 # Load with caching to disk (not streaming, but won't load all in RAM)
                 self._dataset = load_dataset(
                     self.dataset_name,
                     name=self.config,
                     split="train",
-                    cache_dir="./dataset_cache"  # Cache to disk
+                    cache_dir="./dataset_cache",  # Cache to disk
+                    download_mode="reuse_dataset_if_exists"  # Don't re-download if exists
                 )
-                logger.info(f"Dataset ready! Total problems: {len(self._dataset)}")
+                
+                logger.info(f"✅ Dataset ready! Total problems: {len(self._dataset)}")
+            except KeyboardInterrupt:
+                logger.warning(f"⚠️ Dataset download interrupted by user")
+                raise
             except Exception as e:
-                logger.error(f"Failed to load dataset: {e}")
+                logger.error(f"❌ Failed to load dataset: {e}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
                 raise
         return self._dataset
     

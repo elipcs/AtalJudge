@@ -72,16 +72,10 @@ export {
 } from './AllowedIPDtos';
 
 export {
-  DatasetProblemDTO,
-  DatasetProblemDetailDTO,
-  DatasetTestCaseDTO,
-  ImportTestCasesFromDatasetDTO,
-  ImportDatasetProblemDTO,
-  ImportDatasetProblemResponseDTO,
-  BulkImportDatasetDTO,
-  BulkImportProgressDTO,
-  BulkImportDatasetResponseDTO
-} from './DatasetDtos';
-
-
+  CsvQuestionRow,
+  ImportQuestionsFromCsvDTO,
+  CsvImportError,
+  CsvImportResult,
+  ImportQuestionsFromCsvResponseDTO
+} from './CsvImportDtos';
 

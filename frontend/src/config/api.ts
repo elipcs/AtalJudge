@@ -35,7 +35,7 @@ function getApiBaseUrl(): string {
   if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE_URL) {
     return process.env.NEXT_PUBLIC_API_BASE_URL;
   }
-  
+
   // In browser, use window.location.origin to get the current host
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol;
@@ -43,7 +43,7 @@ function getApiBaseUrl(): string {
     const port = window.location.port ? `:${window.location.port}` : '';
     return `${protocol}//${host}${port === ':3000' ? ':3333' : port}/api`;
   }
-  
+
   // Fallback for server-side rendering
   return 'http://localhost:3333/api';
 }
@@ -397,6 +397,25 @@ export const API = {
       post<{ testCases: Array<{ input: string; expectedOutput: string }>; totalGenerated: number; algorithmTypeDetected?: string }>(
         `/questions/${questionId}/testcases/generate`, data, config
       ),
+    importFromFile: async (questionId: string, formData: FormData) => {
+      const url = `${API_BASE_URL}/questions/${questionId}/testcases/import`;
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro ao importar arquivo' }));
+        throw new Error(errorData.message || 'Erro ao importar arquivo');
+      }
+
+      return response.json();
+    },
   },
 
   password: {

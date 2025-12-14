@@ -115,3 +115,17 @@ export const generateTestCases = async (
   const { data: result } = await API.testCases.generate(questionId, data, config);
   return result;
 };
+
+export interface ImportFromFileResponse {
+  imported: number;
+  failed: number;
+  errors?: string[];
+}
+
+export const importFromFile = async (
+  questionId: string,
+  formData: FormData
+): Promise<ImportFromFileResponse> => {
+  const response = await API.testCases.importFromFile(questionId, formData);
+  return response.data;
+};

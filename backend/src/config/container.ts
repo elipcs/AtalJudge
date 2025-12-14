@@ -123,6 +123,7 @@ import {
 import { BulkUpdateTestCasesUseCase } from '../use-cases/testcase/BulkUpdateTestCasesUseCase';
 import { GenerateTestCasesUseCase } from '../use-cases/testcase/GenerateTestCasesUseCase';
 import { ImportTestCasesFromDatasetUseCase } from '../use-cases/testcase/ImportTestCasesFromDatasetUseCase';
+import { ImportTestCasesFromFileUseCase } from '../use-cases/testcase/ImportTestCasesFromFileUseCase';
 import {
   GetAllAllowedIPsUseCase,
   GetAllowedIPByIdUseCase,
@@ -239,6 +240,7 @@ export function setupContainer(): void {
   container.registerSingleton(BulkUpdateTestCasesUseCase);
   container.registerSingleton(GenerateTestCasesUseCase);
   container.registerSingleton(ImportTestCasesFromDatasetUseCase);
+  container.registerSingleton(ImportTestCasesFromFileUseCase);
   container.registerSingleton(GetAllAllowedIPsUseCase);
   container.registerSingleton(GetAllowedIPByIdUseCase);
   container.registerSingleton(CreateAllowedIPUseCase);

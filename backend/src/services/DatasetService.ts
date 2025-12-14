@@ -20,16 +20,14 @@ import logger from '../utils/logger';
 export class DatasetService {
   private apiClient: AxiosInstance;
   private baseUrl: string;
-  private jwtToken: string;
 
   constructor() {
     // Get test-case-manager API URL from environment
-    this.baseUrl = process.env.TEST_CASE_MANAGER_URL || 'http://localhost:8000';
-    this.jwtToken = '';
+    this.baseUrl = process.env.TEST_CASE_MANAGER_API_URL || 'http://test-case-manager:8000';
     
     this.apiClient = axios.create({
       baseURL: this.baseUrl,
-      timeout: 30000, // 30 seconds timeout
+      timeout: 600000, // 10 minutes timeout for dataset downloads
       headers: {
         'Content-Type': 'application/json'
       }
@@ -42,13 +40,12 @@ export class DatasetService {
    * Set JWT token for authenticated requests
    */
   setJwtToken(token: string): void {
-    this.jwtToken = token;
     this.apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
 
   /**
    * Search for problems in the dataset by title
-   * Calls /api/import/search endpoint from import_database module
+   * Calls /api/dataset/search endpoint
    * 
    * @param title - Problem title to search for
    * @param datasetConfig - Dataset configuration (1x, 2x, 3x, 4x, 5x)
@@ -63,10 +60,12 @@ export class DatasetService {
     try {
       logger.info(`Searching dataset by title: title="${title}", config="${datasetConfig}", limit=${limit}`);
       
-      const response = await this.apiClient.post<DatasetProblemDTO[]>('/api/import/search', {
-        query: title,
-        config: datasetConfig,
-        limit
+      const response = await this.apiClient.get<DatasetProblemDTO[]>('/api/dataset/search', {
+        params: {
+          query: title,
+          config: datasetConfig,
+          limit
+        }
       });
 
       logger.info(`Found ${response.data.length} problems matching title "${title}"`);
@@ -84,46 +83,44 @@ export class DatasetService {
 
   /**
    * List all problems from the dataset
-   * Calls /api/import/testcases endpoint with bulk import request
-   * The test-case-manager will download all problems and push to backend
+   * Calls /api/import/testcases endpoint to trigger bulk import
    * 
    * @param datasetConfig - Dataset configuration (1x, 2x, 3x, 4x, 5x)
    * @param limit - Maximum number of results (default: 1000 to avoid disk issues)
-   * @returns Array indicating bulk import started
+   * @returns Empty array (bulk import happens in background)
    */
   async listAllProblems(
     datasetConfig: string = '1x', 
     limit: number = 1000
   ): Promise<DatasetProblemDTO[]> {
     try {
-      logger.info(`Starting bulk dataset import: config="${datasetConfig}", limit=${limit}`);
+      logger.info(`Starting bulk import from dataset: config="${datasetConfig}", limit=${limit}`);
       
       // Call /api/import/testcases to trigger bulk import
       const response = await this.apiClient.post<any>('/api/import/testcases', {
         config: datasetConfig,
-        limit
-      }, {
-        timeout: 600000 // 10 minutes timeout for large bulk import
+        limit,
+        skip_existing: true
       });
 
-      logger.info(`Bulk import response: ${response.data.message}`);
+      logger.info(`Bulk import initiated: ${response.data.message}`);
       
-      // Return empty array since bulk import happens in test-case-manager
+      // Return empty array since bulk import happens in background
       return [];
     } catch (error: any) {
-      logger.error('Error starting bulk dataset import:', error.message);
+      logger.error('Error initiating bulk import:', error.message);
       
       if (error.code === 'ECONNREFUSED') {
         throw new Error('Test-case-manager microservice is not available. Please ensure the service is running on ' + this.baseUrl);
       }
       
-      throw new Error(`Failed to start bulk import: ${error.message}`);
+      throw new Error(`Failed to initiate bulk import: ${error.message}`);
     }
   }
 
   /**
    * Get detailed information about a specific problem
-   * Calls /api/import/problem/:id endpoint from import_database module
+   * Calls /api/dataset/problem/:id endpoint
    * 
    * @param problemId - The dataset problem ID
    * @param datasetConfig - Dataset configuration (1x, 2x, 3x, 4x, 5x)
@@ -137,7 +134,7 @@ export class DatasetService {
       logger.info(`Fetching problem details: id="${problemId}", config="${datasetConfig}"`);
       
       const response = await this.apiClient.get<DatasetProblemDetailDTO>(
-        `/api/import/problem/${problemId}`,
+        `/api/dataset/problem/${problemId}`,
         { params: { config: datasetConfig } }
       );
 
@@ -160,7 +157,7 @@ export class DatasetService {
 
   /**
    * Get test case previews for a problem
-   * Uses /api/import/testcases endpoint with problem ID filter
+   * Uses /api/dataset/problem/:id/testcases/preview endpoint
    * 
    * @param problemId - The dataset problem ID
    * @param datasetConfig - Dataset configuration (1x, 2x, 3x, 4x, 5x)
@@ -175,12 +172,13 @@ export class DatasetService {
     try {
       logger.info(`Fetching test cases preview: id="${problemId}", config="${datasetConfig}", limit=${limit}`);
       
-      const response = await this.apiClient.post<DatasetTestCaseDTO[]>(
-        '/api/import/testcases',
+      const response = await this.apiClient.get<DatasetTestCaseDTO[]>(
+        `/api/dataset/problem/${problemId}/testcases/preview`,
         { 
-          problem_id: problemId,
-          config: datasetConfig, 
-          limit 
+          params: {
+            config: datasetConfig, 
+            limit 
+          }
         }
       );
 

@@ -7,6 +7,7 @@ import { API } from "@/config/api";
 import { TestCaseResponseDTO } from "@/types/dtos";
 import GenerateTestCasesModal from "./GenerateTestCasesModal";
 import ImportFromDatasetModal from "./ImportFromDatasetModal";
+import ImportTestCasesFileModal from "./ImportTestCasesFileModal";
 
 interface TestCase {
   id: string;
@@ -47,6 +48,7 @@ export default function TestCasesModal({
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showImportFileModal, setShowImportFileModal] = useState(false);
 
   const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
 
@@ -596,11 +598,19 @@ export default function TestCasesModal({
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => setShowImportModal(true)}
+                          onClick={() => setShowImportFileModal(true)}
                           disabled={isSaving}
                           className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Importar Casos
+                          Importar de Arquivo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowImportModal(true)}
+                          disabled={isSaving}
+                          className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Importar do Dataset
                         </button>
                         <button
                           type="button"
@@ -880,6 +890,13 @@ export default function TestCasesModal({
       <ImportFromDatasetModal
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
+        questionId={questionId}
+        onSuccess={handleGenerateSuccess}
+      />
+
+      <ImportTestCasesFileModal
+        isOpen={showImportFileModal}
+        onClose={() => setShowImportFileModal(false)}
         questionId={questionId}
         onSuccess={handleGenerateSuccess}
       />
