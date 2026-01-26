@@ -15,7 +15,7 @@ import { injectable, inject } from 'tsyringe';
 import { SubmissionRepository, SubmissionResultRepository, QuestionRepository, TestCaseRepository, QuestionListRepository } from '../repositories';
 import { CreateSubmissionDTO, SubmissionResponseDTO, SubmissionDetailDTO, TestCaseResultDTO } from '../dtos';
 import { SubmissionStatus, JudgeVerdict, ProgrammingLanguage } from '../enums';
-import { Judge0Service } from './Judge0Service';
+import { LocalExecutionService } from './LocalExecutionService';
 import { SubmissionQueueService } from './SubmissionQueueService';
 import { GradeService } from './GradeService';
 import { logger, NotFoundError, ValidationError } from '../utils';
@@ -33,7 +33,7 @@ export class SubmissionService {
     @inject(SubmissionResultRepository) private submissionResultRepository: SubmissionResultRepository,
     @inject(QuestionRepository) private questionRepository: QuestionRepository,
     @inject(TestCaseRepository) private testCaseRepository: TestCaseRepository,
-    @inject(Judge0Service) private judge0Service: Judge0Service,
+    @inject(LocalExecutionService) private judgeService: LocalExecutionService,
     @inject(GradeService) private gradeService: GradeService,
     @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
     @inject('SubmissionQueueService') private queueService?: SubmissionQueueService
@@ -291,7 +291,7 @@ export class SubmissionService {
         testCases: batchSubmissions.length
       });
 
-      const tokens = await this.judge0Service.createBatchSubmissions(
+      const tokens = await this.judgeService.createBatchSubmissions(
         batchSubmissions,
         limits
       );
@@ -300,7 +300,7 @@ export class SubmissionService {
         status: SubmissionStatus.RUNNING
       });
 
-      const results = await this.judge0Service.waitForBatchSubmissionsWithCallback(
+      const results = await this.judgeService.waitForBatchSubmissionsWithCallback(
         tokens,
         async (_progress) => {
         }
@@ -330,7 +330,7 @@ export class SubmissionService {
       for (let i = 0; i < results.length; i++) {
         const judge0Result = results[i];
         const testCase = testCases[i];
-        const processedResult = this.judge0Service.processSubmissionResult(
+        const processedResult = this.judgeService.processSubmissionResult(
           judge0Result,
           testCase.expectedOutput
         );

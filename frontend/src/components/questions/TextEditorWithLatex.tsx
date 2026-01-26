@@ -240,6 +240,7 @@ export default function TextEditorWithLatex({
         placeholder,
       }),
     ],
+    immediatelyRender: false,
     content: markdownToHtml(value),
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();

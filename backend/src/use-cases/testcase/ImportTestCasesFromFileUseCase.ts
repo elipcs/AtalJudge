@@ -22,8 +22,8 @@ interface ImportResult {
 @injectable()
 export class ImportTestCasesFromFileUseCase {
     constructor(
-        @inject('TestCaseRepository') private testCaseRepository: TestCaseRepository,
-        @inject('QuestionRepository') private questionRepository: QuestionRepository
+        @inject(TestCaseRepository) private testCaseRepository: TestCaseRepository,
+        @inject(QuestionRepository) private questionRepository: QuestionRepository
     ) { }
 
     async execute(params: {

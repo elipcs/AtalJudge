@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dropdown } from "@/components/ui/dropdown";
+import CodeEditor from "@/components/ui/CodeEditor";
 import TestCasesModal from "./TestCasesModal";
 import SubmissionStatusModal from "../submissions/SubmissionStatusModal";
 import { UserRole } from "@/types";
@@ -229,16 +230,17 @@ export default function CodeSubmission({
         <label className="block text-sm font-semibold text-slate-700 mb-2">
           Seu Código
         </label>
-        <textarea
+        <CodeEditor
           value={code}
-          onChange={(e) => setCode(e.target.value)}
+          onChange={setCode}
+          language={language as "python" | "java"}
           placeholder={
             language === "python"
               ? "# Escreva seu código Python aqui\ndef main():\n    pass\n\nif __name__ == '__main__':\n    main()"
               : "// Escreva seu código Java aqui\npublic class Main {\n    public static void main(String[] args) {\n        \n    }\n}"
           }
-          className="flex-1 min-h-[300px] w-full p-4 font-mono text-sm bg-slate-900 text-slate-200 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-          spellCheck={false}
+          className="flex-1"
+          minHeight="300px"
         />
       </div>
 

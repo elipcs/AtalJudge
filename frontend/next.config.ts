@@ -3,7 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
 
   // Enable standalone output for optimized Docker images
-  output: 'standalone',
+  // Enable static export
+  output: 'export',
+
+  images: {
+    unoptimized: true,
+  },
 
   experimental: {
 

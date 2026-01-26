@@ -5,7 +5,7 @@
  * @class OracleExecutionService
  */
 import { injectable, inject } from 'tsyringe';
-import { Judge0Service } from './Judge0Service';
+import { LocalExecutionService } from './LocalExecutionService';
 import { ProgrammingLanguage } from '../enums/ProgrammingLanguage';
 import { JudgeVerdict } from '../enums/JudgeVerdict';
 import { logger } from '../utils';
@@ -22,8 +22,8 @@ export class OracleExecutionService {
   private readonly ORACLE_TIMEOUT_SECONDS = 5;
 
   constructor(
-    @inject(Judge0Service) private judge0Service: Judge0Service
-  ) {}
+    @inject(LocalExecutionService) private judgeService: LocalExecutionService
+  ) { }
 
   /**
    * Executes oracle code with given input and returns the output
@@ -50,7 +50,7 @@ export class OracleExecutionService {
       }
 
       // Create submission with timeout
-      const token = await this.judge0Service.createSubmission(
+      const token = await this.judgeService.createSubmission(
         oracleCode,
         language,
         input,
@@ -62,14 +62,14 @@ export class OracleExecutionService {
       );
 
       // Wait for execution to complete
-      const status = await this.judge0Service.waitForSubmission(
+      const status = await this.judgeService.waitForSubmission(
         token,
         10, // maxAttempts (should complete within 5 seconds)
         500 // intervalMs
       );
 
       // Process result
-      const processed = this.judge0Service.processSubmissionResult(status);
+      const processed = this.judgeService.processSubmissionResult(status);
 
       if (processed.verdict === JudgeVerdict.ACCEPTED) {
         logger.info('[OracleExecution] Oráculo executado com sucesso', {

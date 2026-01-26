@@ -14,6 +14,7 @@
  * @module app
  */
 import express, { Application } from 'express';
+import * as path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -334,6 +335,19 @@ export function createApp(): Application {
     deleteAllowedIPUseCase,
     performSystemResetUseCase
   ));
+
+
+  // Serve static frontend files
+  const clientPath = path.join(__dirname, '../client');
+  app.use(express.static(clientPath));
+
+  // Handle SPA routing - return index.html for all non-API routes
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(clientPath, 'index.html'));
+  });
 
   app.use(notFoundHandler);
 

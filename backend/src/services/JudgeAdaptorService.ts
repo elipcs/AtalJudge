@@ -6,7 +6,8 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import { Judge0Service, ProcessedSubmissionResult } from './Judge0Service';
+import { LocalExecutionService } from './LocalExecutionService';
+import { ProcessedSubmissionResult } from './JudgeInterfaces';
 import { ProgrammingLanguage } from '../enums/ProgrammingLanguage';
 import { logger } from '../utils';
 
@@ -48,7 +49,7 @@ export interface UnifiedSubmissionResponse {
 @injectable()
 export class JudgeAdaptorService {
   constructor(
-    @inject(Judge0Service) private judge0Service: Judge0Service
+    @inject(LocalExecutionService) private judgeService: LocalExecutionService
   ) { }
 
   /**
@@ -63,7 +64,7 @@ export class JudgeAdaptorService {
     });
 
     {
-      const j0Token = await this.judge0Service.createSubmission(
+      const j0Token = await this.judgeService.createSubmission(
         request.sourceCode,
         request.language,
         request.stdin,
@@ -92,8 +93,8 @@ export class JudgeAdaptorService {
     });
 
     {
-      const j0Status = await this.judge0Service.getSubmissionStatus(submissionId);
-      const processedResult = this.judge0Service.processSubmissionResult(j0Status);
+      const j0Status = await this.judgeService.getSubmissionStatus(submissionId);
+      const processedResult = this.judgeService.processSubmissionResult(j0Status);
       return this.mapJudge0Response(submissionId, processedResult);
     }
   }
@@ -116,12 +117,12 @@ export class JudgeAdaptorService {
       intervalMs
     });
     {
-      const j0Status = await this.judge0Service.waitForSubmission(
+      const j0Status = await this.judgeService.waitForSubmission(
         submissionId,
         maxAttempts,
         intervalMs
       );
-      const processedResult = this.judge0Service.processSubmissionResult(j0Status);
+      const processedResult = this.judgeService.processSubmissionResult(j0Status);
       return this.mapJudge0Response(submissionId, processedResult);
     }
   }
@@ -138,7 +139,7 @@ export class JudgeAdaptorService {
       batchSize: submissions.length,
     });
     {
-      return this.judge0Service.createBatchSubmissions(
+      return this.judgeService.createBatchSubmissions(
         submissions.map(sub => ({
           sourceCode: sub.sourceCode,
           language: sub.language,
@@ -174,7 +175,7 @@ export class JudgeAdaptorService {
       maxAttempts
     });
     {
-      const j0Responses = await this.judge0Service.waitForBatchSubmissionsWithCallback(
+      const j0Responses = await this.judgeService.waitForBatchSubmissionsWithCallback(
         submissionIds,
         async (progress) => {
           await onProgress({
@@ -188,7 +189,7 @@ export class JudgeAdaptorService {
         intervalMs
       );
       return j0Responses.map((resp, idx) => {
-        const processedResult = this.judge0Service.processSubmissionResult(resp);
+        const processedResult = this.judgeService.processSubmissionResult(resp);
         return this.mapJudge0Response(submissionIds[idx], processedResult);
       });
     }

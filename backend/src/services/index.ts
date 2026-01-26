@@ -24,7 +24,7 @@ export { GradeService } from './GradeService';
 export { AllowedIPService } from './AllowedIPService';
 export { SystemResetService } from './SystemResetService';
 export { EmailService } from './EmailService';
-export { Judge0Service } from './Judge0Service';
+
 export { JudgeAdaptorService } from './JudgeAdaptorService';
 export { PasswordResetService } from './PasswordResetService';
 

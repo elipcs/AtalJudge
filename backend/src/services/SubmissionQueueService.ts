@@ -47,7 +47,7 @@ export class SubmissionQueueService {
     });
 
     this.queue = new Queue<SubmissionJobData>('submission-processing', {
-      connection: this.connection,
+      connection: this.connection as any,
       defaultJobOptions: {
         attempts: 3,
         backoff: {
@@ -139,7 +139,7 @@ export class SubmissionQueueService {
         }
       },
       {
-        connection: this.connection,
+        connection: this.connection as any,
         concurrency: parseInt(process.env.QUEUE_CONCURRENCY || '5'),
         limiter: {
           max: 10,
