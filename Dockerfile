@@ -33,8 +33,11 @@ COPY --from=frontend-builder /app/out ./client
 # Install only production dependencies
 RUN bun install --production --frozen-lockfile
 
+# Copy Scripts
+COPY backend/scripts ./scripts
+
 # Expose API port
 EXPOSE 3333
 
-# Start the application
-CMD ["bun", "run", "dist/server.js"]
+# Start the application (Run migrations then start server)
+CMD ["sh", "-c", "bun run scripts/run-migrations.js && bun run dist/server.js"]
