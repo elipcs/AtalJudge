@@ -85,6 +85,7 @@ export function createApp(): Application {
   app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
     crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    hsts: false, // Disable strict transport security for plain HTTP usage
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
@@ -96,6 +97,7 @@ export function createApp(): Application {
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
         frameSrc: ["'self'"],
+        upgradeInsecureRequests: null, // Explicitly disable upgrade-insecure-requests
       },
     },
   }));
