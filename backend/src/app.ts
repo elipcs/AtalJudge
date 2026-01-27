@@ -84,7 +84,20 @@ export function createApp(): Application {
 
   app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
-    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "blob:"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'", "data:"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'self'"],
+      },
+    },
   }));
 
   // Middleware to check internal service requests
