@@ -354,7 +354,7 @@ export function createApp(): Application {
 
   // Serve static frontend files
   const clientPath = path.join(__dirname, '../client');
-  app.use(express.static(clientPath));
+  app.use(express.static(clientPath, { extensions: ['html'] }));
 
   // Handle SPA routing - return index.html for all non-API routes
   app.get('*', (req, res, next) => {
