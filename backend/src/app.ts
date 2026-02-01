@@ -84,7 +84,8 @@ export function createApp(): Application {
 
   app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
-    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    crossOriginOpenerPolicy: { policy: 'unsafe-none' }, // Allow usage without HTTPS
+    originAgentCluster: false, // Prevent "could not be origin-keyed" warning on insecure origins
     hsts: false, // Disable strict transport security for plain HTTP usage
     contentSecurityPolicy: {
       directives: {
