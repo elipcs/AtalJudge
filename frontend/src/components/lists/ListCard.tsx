@@ -38,7 +38,7 @@ export default function ListCard({
   };
 
   return (
-    <Link href={`/listas/${list.id}`} className="block">
+    <Link href={`/listas/detalhes?id=${list.id}`} className="block">
       <Card className="bg-white border-slate-200 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] p-6">
         <div className="flex items-start justify-between mb-6">
           <div className="flex-1">
@@ -53,7 +53,7 @@ export default function ListCard({
                 <p className="text-slate-600 text-lg">{list.description}</p>
               )}
             </div>
-            
+
             <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-2xl p-4 mb-4">
               <div className="flex items-center gap-6 text-sm">
                 <span className="flex items-center gap-2 text-slate-600">
@@ -82,17 +82,17 @@ export default function ListCard({
               )}
             </div>
           </div>
-          
+
           <div className="flex flex-col items-end gap-3">
-            {}
+            { }
             <div className="flex gap-2">
               {userRole === 'student' ? (
-                
-                <Button 
-                  variant="outline" 
+
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={(e) => handleActionClick(e, () => {
-                    window.location.href = `/listas/${list.id}`;
+                    window.location.href = `/listas/detalhes?id=${list.id}`;
                   })}
                   className="border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold transition-all duration-200 rounded-xl"
                 >
@@ -102,10 +102,10 @@ export default function ListCard({
                   Acessar
                 </Button>
               ) : (
-                
+
                 <>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={(e) => {
                       if (isClosed) {
@@ -116,11 +116,10 @@ export default function ListCard({
                       handleActionClick(e, () => onEdit(list));
                     }}
                     disabled={isClosed}
-                    className={`border-slate-300 text-slate-700 font-semibold transition-all duration-200 rounded-xl ${
-                      isClosed 
-                        ? 'opacity-50 cursor-not-allowed bg-slate-100' 
-                        : 'hover:bg-slate-50'
-                    }`}
+                    className={`border-slate-300 text-slate-700 font-semibold transition-all duration-200 rounded-xl ${isClosed
+                      ? 'opacity-50 cursor-not-allowed bg-slate-100'
+                      : 'hover:bg-slate-50'
+                      }`}
                     title={isClosed ? 'Esta lista está fechada e não pode ser editada' : 'Editar lista'}
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,8 +128,8 @@ export default function ListCard({
                     Editar
                   </Button>
 
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={(e) => handleActionClick(e, () => onDelete(list))}
                     className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all duration-200 rounded-xl"

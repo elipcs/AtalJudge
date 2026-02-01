@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
@@ -19,10 +19,14 @@ import { listsApi } from "@/services/lists";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from '@/utils/logger';
 
+
 export default function ListPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const id = params.id as string;
+
+  // Support both Dynamic Route [id] and Query Param ?id=
+  const id = (params?.id as string) || searchParams?.get('id') || '';
 
   const {
     list,
@@ -424,7 +428,7 @@ export default function ListPage() {
                   <div
                     className="border border-slate-200 rounded-2xl p-6 bg-gradient-to-r from-slate-50 to-slate-100 hover:shadow-lg transition-all duration-200 cursor-pointer"
                     onClick={() => {
-                      router.push(`/listas/${id}/questoes?q=${index}`);
+                      router.push(`/listas/questoes?id=${id}&q=${index}`);
                     }}
                   >
                     <div className="flex items-center justify-between">
@@ -499,7 +503,7 @@ export default function ListPage() {
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
-                              router.push(`/listas/${id}/questoes?q=${index}`);
+                              router.push(`/listas/questoes?id=${id}&q=${index}`);
                             }}
                             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
                           >

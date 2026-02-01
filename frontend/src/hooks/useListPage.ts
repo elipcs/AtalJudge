@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { QuestionList, Question } from '@/types';
 import { listsApi, isCurrentIpAllowedForList } from '@/services/lists';
 import { submissionsApi } from '@/services/submissions';
@@ -18,10 +18,12 @@ interface LocalSubmission {
   feedback?: string;
 }
 
+
 export function useListPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const questionListId = params.id as string;
+  const questionListId = (params?.id as string) || searchParams?.get('id') || '';
 
   const [list, setList] = useState<QuestionList | null>(null);
   const [submissions, setSubmissions] = useState<LocalSubmission[]>([]);

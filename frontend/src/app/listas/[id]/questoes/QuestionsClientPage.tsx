@@ -19,7 +19,7 @@ export default function QuestionsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const id = params.id as string;
+  const id = (params?.id as string) || searchParams?.get('id') || '';
 
   const {
     list,
@@ -204,7 +204,7 @@ export default function QuestionsPage() {
 
   const goToQuestion = (idx: number) => {
     setActiveQuestionIndex(idx);
-    router.push(`/listas/${id}/questoes?q=${idx}`, { scroll: false });
+    router.push(`/listas/questoes?id=${id}&q=${idx}`, { scroll: false });
   };
 
   return (
@@ -212,7 +212,7 @@ export default function QuestionsPage() {
       { }
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <Link href={`/listas/${id}`}>
+          <Link href={`/listas/detalhes?id=${id}`}>
             <Button variant="outline" size="sm" className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all duration-200 rounded-xl">
               ← Voltar
             </Button>

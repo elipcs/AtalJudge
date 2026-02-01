@@ -139,20 +139,22 @@ export function createApp(): Application {
             'http://localhost:5174',
             'http://127.0.0.1:3000',
             'http://127.0.0.1:5173',
-            'http://127.0.0.1:5174'
+            'http://127.0.0.1:5174',
+            'http://150.165.85.119', // VM IP
+            'http://150.165.85.119:3333'
           ] : [])
         ].filter(Boolean);
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
+      // Permissive check for IP access in production without domain
+      if (allowedOrigins.includes(origin) || origin.startsWith('http://150.165.85.119')) {
+        return callback(null, true);
+      }
+      logger.warn('[CORS] Origem bloqueada', { origin, isProduction });
+      if (isProduction) {
+        callback(new Error('Origem não permitida'), false);
       } else {
-        logger.warn('[CORS] Origem bloqueada', { origin, isProduction });
-        if (isProduction) {
-          callback(new Error('Origem não permitida'), false);
-        } else {
 
-          callback(null, true);
-        }
+        callback(null, true);
       }
     },
     credentials: true,
