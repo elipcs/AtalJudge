@@ -15,7 +15,7 @@ import { injectable, inject } from 'tsyringe';
 import { SubmissionRepository, SubmissionResultRepository, QuestionRepository, TestCaseRepository, QuestionListRepository } from '../repositories';
 import { CreateSubmissionDTO, SubmissionResponseDTO, SubmissionDetailDTO, TestCaseResultDTO } from '../dtos';
 import { SubmissionStatus, JudgeVerdict, ProgrammingLanguage } from '../enums';
-import { Judge0Service } from './Judge0Service';
+import { SandboxFusionService } from './SandboxFusionService';
 import { SubmissionQueueService } from './SubmissionQueueService';
 import { GradeService } from './GradeService';
 import { logger, NotFoundError, ValidationError } from '../utils';
@@ -33,7 +33,7 @@ export class SubmissionService {
     @inject(SubmissionResultRepository) private submissionResultRepository: SubmissionResultRepository,
     @inject(QuestionRepository) private questionRepository: QuestionRepository,
     @inject(TestCaseRepository) private testCaseRepository: TestCaseRepository,
-    @inject(Judge0Service) private judgeService: Judge0Service,
+    @inject(SandboxFusionService) private judgeService: SandboxFusionService,
     @inject(GradeService) private gradeService: GradeService,
     @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
     @inject('SubmissionQueueService') private queueService?: SubmissionQueueService

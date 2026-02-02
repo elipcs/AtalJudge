@@ -68,23 +68,26 @@ export default function CodeEditor({
                     style={vscDarkPlus}
                     customStyle={{
                         margin: 0,
-                        padding: "16px",
-                        paddingLeft: "56px",
+                        padding: "10px", // Base padding
+                        paddingLeft: "60px", // Total left padding (LineNumWidth + Gap + BasePadding) -> 40px + 10px + 10px = 60px
                         minHeight,
                         height: "100%",
                         background: "#1e1e1e",
                         fontSize: "14px",
-                        lineHeight: "24px", // Fixed line height for better alignment
+                        lineHeight: "24px",
                         fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
+                        letterSpacing: "normal",
+                        fontVariantLigatures: "none",
                         opacity: isPlaceholder ? 0.5 : 1,
                     }}
                     showLineNumbers
                     lineNumberStyle={{
-                        minWidth: "3em", // Fixed width for line numbers
-                        paddingRight: "1em",
+                        minWidth: "40px", // Fixed pixel width
+                        paddingRight: "10px", // Fixed pixel gap
                         color: "#64748b",
                         userSelect: "none",
                         textAlign: "right",
+                        marginRight: "10px", // IMPORTANT: SyntaxHighlighter often adds margin to line numbers
                     }}
                 >
                     {displayCode}
@@ -103,13 +106,15 @@ export default function CodeEditor({
                 className="absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-blue-400 outline-none p-0 m-0 border-0"
                 style={{
                     minHeight,
-                    padding: "16px",
-                    paddingLeft: "calc(3em + 1em + 16px)", // Match SyntaxHighlighter padding + line number width
+                    padding: "10px", // Base padding
+                    paddingLeft: "60px", // MUST MATCH SyntaxHighlighter total paddingLeft exactly
                     fontSize: "14px",
-                    lineHeight: "24px", // Fixed line height MUST match above
+                    lineHeight: "24px",
                     fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
-                    whiteSpace: "pre", // Critical for alignment
-                    overflow: "auto", // Match scrolling behavior
+                    letterSpacing: "normal",
+                    fontVariantLigatures: "none",
+                    whiteSpace: "pre",
+                    overflow: "auto",
                 }}
                 spellCheck={false}
                 autoComplete="off"
