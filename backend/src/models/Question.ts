@@ -20,10 +20,10 @@ export class Question {
   @Column({ type: 'text', nullable: false })
   text!: string;
 
-  @Column({ name: 'time_limit_ms', type: 'int', default: 1000 })
+  @Column({ name: 'time_limit_ms', type: 'int', default: 5000 })
   timeLimitMs!: number;
 
-  @Column({ name: 'memory_limit_kb', type: 'int', default: 64000 })
+  @Column({ name: 'memory_limit_kb', type: 'int', default: 512000 })
   memoryLimitKb!: number;
 
 

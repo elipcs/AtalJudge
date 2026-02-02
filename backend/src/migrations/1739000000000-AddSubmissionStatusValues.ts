@@ -9,22 +9,9 @@ export class AddSubmissionStatusValues1739000000000 implements MigrationInterfac
     // However, PostgreSQL doesn't support IF NOT EXISTS for enum values directly in a simple way
     // without a DO block, but TypeORM migrations usually run once.
 
-    // We wrap in a DO block to catch duplicate value errors gracefully
-    await queryRunner.query(`
-      DO $$ BEGIN
-        ALTER TYPE "submission_status" ADD VALUE 'completed';
-      EXCEPTION
-        WHEN duplicate_object THEN null;
-      END $$;
-    `);
-
-    await queryRunner.query(`
-      DO $$ BEGIN
-        ALTER TYPE "submission_status" ADD VALUE 'error';
-      EXCEPTION
-        WHEN duplicate_object THEN null;
-      END $$;
-    `);
+    // Use IF NOT EXISTS which is supported in Postgres 12+
+    await queryRunner.query(`ALTER TYPE "submission_status" ADD VALUE IF NOT EXISTS 'completed'`);
+    await queryRunner.query(`ALTER TYPE "submission_status" ADD VALUE IF NOT EXISTS 'error'`);
   }
 
   public async down(_queryRunner: QueryRunner): Promise<void> {

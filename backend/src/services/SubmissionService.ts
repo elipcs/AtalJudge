@@ -286,7 +286,7 @@ export class SubmissionService {
         expectedOutput: testCase.expectedOutput
       }));
 
-      logger.info('Sending submission to Judge0', {
+      logger.info('Sending submission to Local Execution', {
         submissionId,
         testCases: batchSubmissions.length
       });
@@ -306,7 +306,7 @@ export class SubmissionService {
         }
       );
 
-      logger.info('Judge0 results received', {
+      logger.info('Local Execution results received', {
         submissionId,
         resultCount: results.length
       });

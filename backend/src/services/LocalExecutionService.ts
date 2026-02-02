@@ -9,7 +9,6 @@ import { injectable } from 'tsyringe';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as os from 'os';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { ProgrammingLanguage } from '../enums/ProgrammingLanguage';
@@ -39,7 +38,7 @@ interface ExecutionResult {
 @injectable()
 export class LocalExecutionService {
     private results: Map<string, ExecutionResult> = new Map();
-    private readonly TEMP_DIR = path.join(os.tmpdir(), 'ataljudge-executions');
+    private readonly TEMP_DIR = '/tmp/ataljudge-executions';
 
     constructor() {
         this.ensureTempDir();
@@ -367,7 +366,7 @@ export class LocalExecutionService {
                 };
             case ProgrammingLanguage.JAVA:
                 return {
-                    image: 'openjdk:17-alpine',
+                    image: 'eclipse-temurin:17-alpine',
                     filename: 'Main.java',
                     compileCmd: 'javac Main.java',
                     runCmd: 'java Main'
