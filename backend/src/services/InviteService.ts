@@ -11,6 +11,7 @@ import { Invite } from '../models/Invite';
 import { CreateInviteDTO, InviteResponseDTO } from '../dtos';
 import * as crypto from 'crypto';
 import { NotFoundError, ValidationError } from '../utils';
+import { config } from '../config';
 
 @injectable()
 export class InviteService {
@@ -35,7 +36,7 @@ export class InviteService {
 
     const savedInvite = await this.inviteRepository.create(invite);
 
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const baseUrl = config.frontendUrl;
     const link = `${baseUrl}/cadastro?token=${savedInvite.token}`;
 
     return new InviteResponseDTO({
@@ -81,7 +82,7 @@ export class InviteService {
       throw new ValidationError('Convite inválido', 'INVITE_INVALID');
     }
 
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const baseUrl = config.frontendUrl;
     return new InviteResponseDTO({
       ...invite,
       link: `${baseUrl}/cadastro?token=${invite.token}`

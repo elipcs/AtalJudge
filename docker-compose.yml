@@ -133,3 +133,5 @@ services:
 volumes:
   backend-db-data:
   backend-redis-data:
+  judge0-db-data:
+  judge0-redis-data:
