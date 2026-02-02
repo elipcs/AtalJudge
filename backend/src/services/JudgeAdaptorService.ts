@@ -6,7 +6,7 @@
  */
 
 import { injectable, inject } from 'tsyringe';
-import { Judge0Service } from './Judge0Service';
+import { SandboxFusionService } from './SandboxFusionService';
 import { ProcessedSubmissionResult } from './JudgeInterfaces';
 import { ProgrammingLanguage } from '../enums/ProgrammingLanguage';
 import { logger } from '../utils';
@@ -49,7 +49,7 @@ export interface UnifiedSubmissionResponse {
 @injectable()
 export class JudgeAdaptorService {
   constructor(
-    @inject(Judge0Service) private judgeService: Judge0Service
+    @inject(SandboxFusionService) private judgeService: SandboxFusionService
   ) { }
 
   /**

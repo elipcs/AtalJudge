@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
 
   backend-db:
@@ -62,8 +64,6 @@ services:
         condition: service_healthy
       backend-redis:
         condition: service_healthy
-      judge0-server:
-        condition: service_started
     restart: always
     mem_limit: 512m
     healthcheck:
@@ -90,6 +90,7 @@ services:
       - POSTGRES_PASSWORD=${JUDGE0_DB_PASSWORD:-judge0password}
       - POSTGRES_DB=${JUDGE0_DB_NAME:-judge0}
       - POSTGRES_HOST=judge0-db
+      - CGROUPS_V2=false
     depends_on:
       - judge0-db
       - judge0-redis
@@ -138,5 +139,4 @@ services:
 volumes:
   backend-db-data:
   backend-redis-data:
-  judge0-db-data:
-  judge0-redis-data:
+  backend-redis-data:
