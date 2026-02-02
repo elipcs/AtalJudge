@@ -307,7 +307,7 @@ export class SandboxFusionService {
 
             // Execution Phase
             const runCmd = plan.runCmd;
-            const stdinPart = stdin ? '< /code/stdin.txt' : '';
+            const stdinPart = stdin ? '< stdin.txt' : '';
             const containerName = plan.containerName;
 
             // Use persistent containers via "docker exec" for instant startup (no massive overhead)
