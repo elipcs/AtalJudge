@@ -1,16 +1,12 @@
 /**
  * @module services/SandboxFusionService
- * @description Service for executing code locally using Docker containers.
- * Replaces Judge0Service with a lightweight implementation called SandboxFusion.
- * Currently supports Python and Java.
+ * @description Service for executing code locally using HTTP Executor Microservices.
+ * Replaces old "Docker Exec" CLI approach with a robust HTTP architecture.
  * @class SandboxFusionService
  */
 import { injectable } from 'tsyringe';
 import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import axios from 'axios';
 import { ProgrammingLanguage } from '../enums/ProgrammingLanguage';
 import { JudgeVerdict } from '../enums/JudgeVerdict';
 import { logger } from '../utils';
@@ -18,9 +14,6 @@ import {
     Judge0StatusResponse,
     ProcessedSubmissionResult
 } from './JudgeInterfaces';
-
-
-const execAsync = promisify(exec);
 
 interface ExecutionResult {
     token: string;
@@ -38,19 +31,8 @@ interface ExecutionResult {
 @injectable()
 export class SandboxFusionService {
     private results: Map<string, ExecutionResult> = new Map();
-    private readonly TEMP_DIR = '/tmp/ataljudge-executions';
 
-    constructor() {
-        this.ensureTempDir();
-    }
-
-    private async ensureTempDir() {
-        try {
-            await fs.mkdir(this.TEMP_DIR, { recursive: true });
-        } catch (error) {
-            logger.error('Failed to create temp directory for executions', error);
-        }
-    }
+    constructor() { }
 
     // --- Public Interface (matching Judge0Service) ---
 
@@ -62,14 +44,13 @@ export class SandboxFusionService {
         limits?: {
             cpuTimeLimit?: number;
             memoryLimit?: number;
-            wallTimeLimit?: number;
         }
     ): Promise<string> {
         const token = uuidv4();
         this.initializeSubmission(token);
 
-        // Run in background (fire and forget)
-        this.executeSubmission(token, sourceCode, language, stdin, limits).catch(err => {
+        // Run in background (fire and forget pattern for async processing)
+        this.executeSubmissionHttp(token, sourceCode, language, stdin, limits).catch(err => {
             logger.error(`Error executing submission ${token}`, err);
             this.updateStatus(token, 13, 'Internal Error', { message: err.message });
         });
@@ -87,11 +68,9 @@ export class SandboxFusionService {
         limits?: {
             cpuTimeLimit?: number;
             memoryLimit?: number;
-            wallTimeLimit?: number;
         }
     ): Promise<string[]> {
         const tokens: string[] = [];
-
         for (const sub of submissions) {
             const token = await this.createSubmission(
                 sub.sourceCode,
@@ -102,7 +81,6 @@ export class SandboxFusionService {
             );
             tokens.push(token);
         }
-
         return tokens;
     }
 
@@ -124,7 +102,7 @@ export class SandboxFusionService {
             message: result.message ? Buffer.from(result.message).toString('base64') : null,
             time: result.time,
             memory: result.memory
-        } as any; // Cast because Judge0 interface might have strict null checks we are fudging slightly
+        } as any;
     }
 
     async getBatchSubmissionStatus(tokens: string[]): Promise<Judge0StatusResponse[]> {
@@ -140,7 +118,7 @@ export class SandboxFusionService {
             percentage: number;
             statuses: Judge0StatusResponse[];
         }) => Promise<void>,
-        maxAttempts: number = 30, // Kept for interface compatibility, but we might not need to poll as hard locally 
+        maxAttempts: number = 30,
         intervalMs: number = 500
     ): Promise<Judge0StatusResponse[]> {
         const startTime = Date.now();
@@ -148,7 +126,7 @@ export class SandboxFusionService {
 
         while (Date.now() - startTime < timeout) {
             const statuses = await this.getBatchSubmissionStatus(tokens);
-            const completed = statuses.filter(s => s.status.id > 2).length; // > 2 means finished (Accepted, WA, Error, etc.)
+            const completed = statuses.filter(s => s.status.id > 2).length;
             const pending = statuses.filter(s => s.status.id <= 2).length;
             const percentage = Math.round((completed / tokens.length) * 100);
 
@@ -190,15 +168,10 @@ export class SandboxFusionService {
         throw new Error(`Timeout waiting for submission ${token}`);
     }
 
-    // Reuse the logic from Judge0Service for result processing
     processSubmissionResult(
         status: Judge0StatusResponse,
         expectedOutput?: string
     ): ProcessedSubmissionResult {
-        // This logic is identical to Judge0Service, we can duplicate it or refactor.
-        // Duplicating for now to keep it self-contained as requested.
-
-        // Decode base64 if needed (our getSubmissionStatus returns base64 to match Judge0)
         const decode = (str?: string) => str ? Buffer.from(str, 'base64').toString('utf-8') : undefined;
 
         const stdout = decode(status.stdout);
@@ -225,7 +198,6 @@ export class SandboxFusionService {
         return {
             verdict,
             passed,
-            // FIX: Round to integer to avoid Postgres errors with floats
             executionTimeMs: status.time ? Math.round(parseFloat(status.time) * 1000) : undefined,
             memoryUsedKb: status.memory,
             output: stdout?.trim(),
@@ -256,143 +228,97 @@ export class SandboxFusionService {
         }
     }
 
-    private async executeSubmission(
+    private async executeSubmissionHttp(
         token: string,
         sourceCode: string,
         language: ProgrammingLanguage,
         stdin: string | undefined,
         limits: any
     ) {
-        // Log the environment for debugging
-        logger.info(`[SandboxFusion] Preparing execution for ${token}`, { language, limits });
-
-        const workDir = path.join(this.TEMP_DIR, token);
+        logger.info(`[SandboxFusion-HTTP] Preparing execution for ${token}`, { language });
 
         try {
             this.updateStatus(token, 2, 'Processing');
-            await fs.mkdir(workDir, { recursive: true });
 
-            // Generate execution plan (filename, docker image, compile command, run command)
-            const plan = this.getExecutionPlan(language);
+            const endpoint = this.getExecutorEndpoint(language);
+            const payload = this.getExecutorPayload(language, sourceCode, stdin, limits);
 
-            // Write source code
-            const filePath = path.join(workDir, plan.filename);
-            await fs.writeFile(filePath, sourceCode);
-            logger.info(`[SandboxFusion] Wrote code to ${filePath}`);
+            logger.info(`[SandboxFusion-HTTP] Posting to ${endpoint}`);
 
-            // Write stdin if present
-            if (stdin) {
-                await fs.writeFile(path.join(workDir, 'stdin.txt'), stdin);
+            const response = await axios.post(endpoint, payload, {
+                timeout: 10000 // 10s connection timeout
+            });
+
+            const result = response.data;
+            logger.info(`[SandboxFusion-HTTP] Result received`, result);
+
+            if (result.error) {
+                this.updateStatus(token, 13, 'Internal Error', { message: result.error });
+                return;
             }
 
-            // Preparation/Compilation Phase
-            if (plan.compileCmd) {
-                try {
-                    // Run compilation in docker
-                    const compileCmdFull = `docker run --rm \
-            -v "${workDir}:/code" \
-            -w /code \
-            ${plan.image} \
-            sh -c "${plan.compileCmd}"`;
-
-                    logger.info(`[SandboxFusion] Compiling: ${compileCmdFull}`);
-                    await execAsync(compileCmdFull);
-                } catch (compileError: any) {
-                    const stderr = compileError.stderr || compileError.message;
-                    logger.error(`[SandboxFusion] Compilation failed`, { stderr });
-                    this.updateStatus(token, 6, 'Compilation Error', { compileOutput: stderr });
-                    return;
+            // Map exit code to verdict
+            if (result.exitCode !== 0) {
+                if (result.stderr && result.stderr.includes('Time Limit Exceeded')) {
+                    this.updateStatus(token, 5, 'Time Limit Exceeded', { time: '5.0' });
+                } else {
+                    // 11 is Runtime Error
+                    this.updateStatus(token, 11, 'Runtime Error', {
+                        stderr: result.stderr,
+                        time: result.time?.toFixed(3)
+                    });
                 }
-            }
-
-            // Execution Phase
-            const runCmd = plan.runCmd;
-            const stdinPart = stdin ? '< stdin.txt' : '';
-            const containerName = plan.containerName;
-
-            // Use persistent containers via "docker exec" for instant startup (no massive overhead)
-            // Added 2s buffer for network/process spawn overhead + cpuTimeLimit
-            const timeLimitFn = limits?.cpuTimeLimit ? limits.cpuTimeLimit + 2 : 5;
-
-            // We run "sh -c" inside the execution container
-            // Since we mount the same volume path in executor as in backend, workDir is valid there too
-            const internalCmd = `cd ${workDir} && ${runCmd} ${stdinPart}`;
-
-            // Timeout command runs on host to limit the docker exec client
-            const dockerExecCmd = `timeout ${timeLimitFn}s docker exec ${containerName} sh -c "${internalCmd}"`;
-
-            logger.info(`[SandboxFusion] Executing: ${dockerExecCmd}`);
-
-            const startTime = process.hrtime();
-            const { stdout, stderr } = await execAsync(dockerExecCmd);
-            const [seconds, nanoseconds] = process.hrtime(startTime);
-            const rawTimeInSeconds = seconds + nanoseconds / 1e9;
-
-            // Overhead is negligible with warm containers (~0.05s)
-            const EXEC_OVERHEAD = 0.05;
-            const timeInSeconds = Math.max(0.001, rawTimeInSeconds - EXEC_OVERHEAD);
-
-            logger.info(`[SandboxFusion] Execution finished`, { stdout, stderr, rawTime: rawTimeInSeconds, adjustedTime: timeInSeconds });
-
-            // Check against limits
-            if (limits?.cpuTimeLimit && timeInSeconds > limits.cpuTimeLimit) {
-                this.updateStatus(token, 5, 'Time Limit Exceeded', { time: timeInSeconds.toFixed(3) });
                 return;
             }
 
             this.updateStatus(token, 3, 'Accepted', {
-                stdout,
-                stderr,
-                time: timeInSeconds.toFixed(3),
+                stdout: result.stdout,
+                stderr: result.stderr,
+                time: result.time?.toFixed(3),
                 memory: 0
             });
 
         } catch (error: any) {
-            logger.error(`[SandboxFusion] Execution Error Catch`, { code: error.code, message: error.message, stderr: error.stderr });
-
-            if (error.code === 124 || error.code === 137 || error.code === 143) {
-                this.updateStatus(token, 5, 'Time Limit Exceeded');
-            } else if (error.stderr) {
-                this.updateStatus(token, 11, 'Runtime Error', { stderr: error.stderr });
-            } else {
-                // Fallback
-                this.updateStatus(token, 11, 'Runtime Error', { message: error.message });
-            }
-        } finally {
-            // Cleanup - commented out for debugging if needed, but keeping for now
-            try {
-                await fs.rm(workDir, { recursive: true, force: true });
-            } catch (e) {
-                logger.warn(`Failed to cleanup workdir ${workDir}`, e);
-            }
+            logger.error(`[SandboxFusion-HTTP] Request Failed`, { message: error.message });
+            this.updateStatus(token, 13, 'Internal Error', { message: error.message });
         }
     }
 
-    private getExecutionPlan(language: ProgrammingLanguage): {
-        image: string;
-        containerName: string;
-        filename: string;
-        compileCmd?: string;
-        runCmd: string;
-    } {
+    private getExecutorEndpoint(language: ProgrammingLanguage): string {
         switch (language) {
             case ProgrammingLanguage.PYTHON:
-                return {
-                    image: 'python:3.10-alpine',
-                    containerName: 'ataljudge-executor-python',
-                    filename: 'main.py',
-                    runCmd: 'python3 main.py'
-                };
+                return 'http://ataljudge-executor-python:3000/run';
             case ProgrammingLanguage.JAVA:
-                return {
-                    image: 'eclipse-temurin:17-alpine',
-                    containerName: 'ataljudge-executor-java',
-                    filename: 'Main.java',
-                    compileCmd: 'javac Main.java',
-                    runCmd: 'java Main'
-                };
+                return 'http://ataljudge-executor-java:3000/run';
             default:
-                throw new Error(`Language ${language} not supported locally yet.`);
+                throw new Error(`Language ${language} not supported.`);
+        }
+    }
+
+    private getExecutorPayload(
+        language: ProgrammingLanguage,
+        code: string,
+        stdin: string | undefined,
+        _limits: any
+    ): any {
+        const base = {
+            code,
+            stdin: stdin || '', // Empty string if undefined
+            language: language === ProgrammingLanguage.JAVA ? 'java' : 'python'
+        };
+
+        if (language === ProgrammingLanguage.PYTHON) {
+            return {
+                ...base,
+                cmd: 'python3',
+                args: ['-u', 'main.py']
+            };
+        } else {
+            return {
+                ...base,
+                cmd: 'java', // The executor handles compilation internally
+                args: []
+            };
         }
     }
 
