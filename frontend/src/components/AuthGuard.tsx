@@ -17,7 +17,9 @@ const PROTECTED_ROUTES = [
   '/convites',
   '/submissoes',
   '/configuracoes',
-  '/perfil'
+  '/perfil',
+  '/questoes',
+  '/ajuda'
 ];
 
 const PUBLIC_ROUTES = [
@@ -33,13 +35,13 @@ const PUBLIC_ROUTES = [
 export default function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isPublicRoute = PUBLIC_ROUTES.some(route => 
+      const isPublicRoute = PUBLIC_ROUTES.some(route =>
         pathname === route || pathname.startsWith(route + '/')
       );
 
@@ -49,7 +51,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         return;
       }
 
-      const isProtectedRoute = PROTECTED_ROUTES.some(route => 
+      const isProtectedRoute = PROTECTED_ROUTES.some(route =>
         pathname === route || pathname.startsWith(route + '/')
       );
 
@@ -58,10 +60,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         setIsChecking(false);
         return;
       }
-      
+
       try {
         const isAuth = await authApi.checkAuthentication();
-        
+
         if (!isAuth) {
           setIsChecking(false);
           router.replace("/login");
