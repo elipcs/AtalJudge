@@ -333,7 +333,6 @@ export class LocalExecutionService {
             });
 
         } catch (error: any) {
-        } catch (error: any) {
             // Check if timeout (exit code 124 is standard for timeout command)
             // WE MUST NOT check error.message.includes('timeout') blindly because it contains the command itself!
             if (error.code === 124) {
