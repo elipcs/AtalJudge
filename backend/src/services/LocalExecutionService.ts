@@ -333,63 +333,68 @@ export class LocalExecutionService {
             });
 
         } catch (error: any) {
-            // Check if timeout (exit code 124 for timeout command usually)
-            if (error.code === 124 || error.message.includes('timeout')) {
+        } catch (error: any) {
+            // Check if timeout (exit code 124 is standard for timeout command)
+            // WE MUST NOT check error.message.includes('timeout') blindly because it contains the command itself!
+            if (error.code === 124) {
                 this.updateStatus(token, 5, 'Time Limit Exceeded');
             } else if (error.stderr) {
+                logger.error('Docker execution failed with stderr', { token, stderr: error.stderr, code: error.code });
                 this.updateStatus(token, 11, 'Runtime Error', { stderr: error.stderr });
             } else {
+                logger.error('Docker execution failed with internal error', { token, message: error.message, code: error.code });
                 this.updateStatus(token, 13, 'Internal Error', { message: error.message });
             }
-        } finally {
-            // Cleanup
-            try {
-                await fs.rm(workDir, { recursive: true, force: true });
-            } catch (e) {
-                logger.warn(`Failed to cleanup workdir ${workDir}`, e);
-            }
         }
+    } finally {
+        // Cleanup
+        try {
+            await fs.rm(workDir, { recursive: true, force: true });
+        } catch (e) {
+            logger.warn(`Failed to cleanup workdir ${workDir}`, e);
+        }
+    }
     }
 
     private getExecutionPlan(language: ProgrammingLanguage): {
-        image: string;
-        filename: string;
-        compileCmd?: string;
-        runCmd: string;
-    } {
-        switch (language) {
-            case ProgrammingLanguage.PYTHON:
-                return {
-                    image: 'python:3.10-alpine',
-                    filename: 'main.py',
-                    runCmd: 'python3 main.py'
-                };
-            case ProgrammingLanguage.JAVA:
-                return {
-                    image: 'eclipse-temurin:17-alpine',
-                    filename: 'Main.java',
-                    compileCmd: 'javac Main.java',
-                    runCmd: 'java Main'
-                };
-            default:
-                throw new Error(`Language ${language} not supported locally yet.`);
-        }
+    image: string;
+    filename: string;
+    compileCmd ?: string;
+    runCmd: string;
+} {
+    switch (language) {
+        case ProgrammingLanguage.PYTHON:
+            return {
+                image: 'python:3.10-alpine',
+                filename: 'main.py',
+                runCmd: 'python3 main.py'
+            };
+        case ProgrammingLanguage.JAVA:
+            return {
+                image: 'eclipse-temurin:17-alpine',
+                filename: 'Main.java',
+                compileCmd: 'javac Main.java',
+                runCmd: 'java Main'
+            };
+        default:
+            throw new Error(`Language ${language} not supported locally yet.`);
     }
+}
 
     private mapStatusToVerdict(statusId: number): JudgeVerdict {
-        switch (statusId) {
-            case 3: return JudgeVerdict.ACCEPTED;
-            case 4: return JudgeVerdict.WRONG_ANSWER;
-            case 5: return JudgeVerdict.TIME_LIMIT_EXCEEDED;
-            case 6: return JudgeVerdict.COMPILATION_ERROR;
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-            case 12: return JudgeVerdict.RUNTIME_ERROR;
-            case 13: return JudgeVerdict.INTERNAL_ERROR;
-            default: return JudgeVerdict.JUDGE_ERROR;
-        }
+    switch (statusId) {
+        case 3: return JudgeVerdict.ACCEPTED;
+        case 4: return JudgeVerdict.WRONG_ANSWER;
+        case 5: return JudgeVerdict.TIME_LIMIT_EXCEEDED;
+        case 6: return JudgeVerdict.COMPILATION_ERROR;
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12: return JudgeVerdict.RUNTIME_ERROR;
+        case 13: return JudgeVerdict.INTERNAL_ERROR;
+        default: return JudgeVerdict.JUDGE_ERROR;
     }
+}
 }
