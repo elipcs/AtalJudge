@@ -24,7 +24,7 @@ export default function StudentHome({ currentUser }: StudentHomeProps) {
     if (!data) {
       return { highlightList: null, highlightCategory: null as null | 'open' | 'next' | 'last', currentStudent: null };
     }
-    
+
     const { availableLists, classParticipants } = data;
     const now = new Date();
     const lists = Array.isArray(availableLists) ? availableLists : [];
@@ -135,7 +135,7 @@ export default function StudentHome({ currentUser }: StudentHomeProps) {
     const id = setInterval(updateCountdown, 60000);
     return () => clearInterval(id);
   }, [highlightList, highlightCategory, countdownText]);
-  
+
   const currentClass = data?.currentClass || { id: '', name: 'Carregando...', professorId: '', professorName: 'Carregando...' };
   const classParticipants = data?.classParticipants || [];
 
@@ -149,7 +149,7 @@ export default function StudentHome({ currentUser }: StudentHomeProps) {
       />
 
       {highlightList ? (
-        <Link href={`/listas/${highlightList.id}`} className="block group" tabIndex={-1} style={{ textDecoration: 'none' }}>
+        <Link href={`/listas/detalhes?id=${highlightList.id}`} className="block group" tabIndex={-1} style={{ textDecoration: 'none' }}>
           <Card className="p-6 bg-white border-slate-200 rounded-3xl shadow-lg cursor-pointer group-hover:shadow-xl transition-shadow">
             <div className="flex items-start justify-between mb-6">
               <div>
@@ -171,13 +171,12 @@ export default function StudentHome({ currentUser }: StudentHomeProps) {
                   {highlightCategory === 'last' && 'Você pode revisar suas submissões'}
                 </p>
               </div>
-              <span className={`px-4 py-2 rounded-xl text-sm font-medium border ${
-                highlightCategory === 'open'
+              <span className={`px-4 py-2 rounded-xl text-sm font-medium border ${highlightCategory === 'open'
                   ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-green-200'
                   : highlightCategory === 'next'
-                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-200'
-                  : 'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 border-slate-200'
-              }`}>
+                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-200'
+                    : 'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 border-slate-200'
+                }`}>
                 {highlightCategory === 'open' && 'Disponível'}
                 {highlightCategory === 'next' && 'Em breve'}
                 {highlightCategory === 'last' && 'Encerrada'}
@@ -215,8 +214,8 @@ export default function StudentHome({ currentUser }: StudentHomeProps) {
 
             <div className="flex gap-4">
               {highlightCategory === 'next' ? (
-                <Button 
-                  disabled 
+                <Button
+                  disabled
                   aria-disabled
                   title="A lista ainda não começou"
                   className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 opacity-60 cursor-not-allowed font-semibold"
@@ -235,9 +234,9 @@ export default function StudentHome({ currentUser }: StudentHomeProps) {
                 </Button>
               )}
               {highlightCategory === 'next' ? (
-                <Button 
-                  variant="outline" 
-                  disabled 
+                <Button
+                  variant="outline"
+                  disabled
                   aria-disabled
                   title="As submissões ficarão disponíveis quando a lista começar"
                   className="border-slate-300 text-slate-700 opacity-60 cursor-not-allowed font-semibold"
@@ -248,8 +247,8 @@ export default function StudentHome({ currentUser }: StudentHomeProps) {
                   Ver Submissões
                 </Button>
               ) : (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all duration-200"
                   onClick={e => {
                     e.stopPropagation();

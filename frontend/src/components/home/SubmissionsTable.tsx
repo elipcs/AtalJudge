@@ -41,7 +41,7 @@ function QuestionLink({ questionListId, questionId, questionTitle }: { questionL
     return <span className="text-blue-600">{questionTitle}</span>;
   }
 
-  const href = questionIndex !== null ? `/listas/${questionListId}/questoes?q=${questionIndex}` : `/listas/${questionListId}`;
+  const href = questionIndex !== null ? `/listas/questoes?id=${questionListId}&q=${questionIndex}` : `/listas/detalhes?id=${questionListId}`;
 
   return (
     <Link href={href} className="text-blue-600 hover:text-blue-800 hover:underline font-medium">
@@ -84,70 +84,70 @@ export default function SubmissionsTable({ submissions, showActions = false }: S
         </div>
       ) : (
         <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-medium text-gray-700">Aluno</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-700">Lista</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-700">Questão</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
-              {showActions && (
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Ações</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {safeSubmissions.slice(0, 5).map((submission: any, index) => {
-              const studentName = submission.userName || submission.student?.name || 'Aluno';
-              const questionListTitle= submission.questionListTitle|| submission.questionList?.name || 'Lista desconhecida';
-              const questionTitle = submission.questionName || submission.question?.name || 'Questão desconhecida';
-              const questionListId = submission.questionListId || submission.questionList?.id;
-              const questionId = submission.questionId || submission.question?.id;
-              
-              return (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4">
-                    <div className="font-medium text-gray-900">{studentName}</div>
-                    {(submission as any).studentRegistration && (
-                      <div className="text-xs text-gray-500">Mat: {(submission as any).studentRegistration}</div>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-gray-900">
-                    {questionListId ? (
-                      <Link href={`/listas/${questionListId}`} className="text-blue-600 hover:text-blue-800 hover:underline font-medium">
-                        {questionListTitle}
-                      </Link>
-                    ) : questionListTitle}
-                  </td>
-                  <td className="py-3 px-4 text-gray-900">
-                    {questionListId && questionId ? (
-                      <QuestionLink questionListId={questionListId} questionId={questionId} questionTitle={questionTitle} />
-                    ) : questionTitle}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getVerdictBadgeColor((submission as any).verdict, submission.status)}`}>
-                      {(submission as any).verdict || normalizeStatus(submission.status)}
-                    </span>
-                  </td>
-                  {showActions && (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Aluno</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Lista</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Questão</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+                {showActions && (
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Ações</th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {safeSubmissions.slice(0, 5).map((submission: any, index) => {
+                const studentName = submission.userName || submission.student?.name || 'Aluno';
+                const questionListTitle = submission.questionListTitle || submission.questionList?.name || 'Lista desconhecida';
+                const questionTitle = submission.questionName || submission.question?.name || 'Questão desconhecida';
+                const questionListId = submission.questionListId || submission.questionList?.id;
+                const questionId = submission.questionId || submission.question?.id;
+
+                return (
+                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4">
-                      <Button
-                        onClick={() => openModal(submission)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Ver detalhes
-                      </Button>
+                      <div className="font-medium text-gray-900">{studentName}</div>
+                      {(submission as any).studentRegistration && (
+                        <div className="text-xs text-gray-500">Mat: {(submission as any).studentRegistration}</div>
+                      )}
                     </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <td className="py-3 px-4 text-gray-900">
+                      {questionListId ? (
+                        <Link href={`/listas/detalhes?id=${questionListId}`} className="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                          {questionListTitle}
+                        </Link>
+                      ) : questionListTitle}
+                    </td>
+                    <td className="py-3 px-4 text-gray-900">
+                      {questionListId && questionId ? (
+                        <QuestionLink questionListId={questionListId} questionId={questionId} questionTitle={questionTitle} />
+                      ) : questionTitle}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getVerdictBadgeColor((submission as any).verdict, submission.status)}`}>
+                        {(submission as any).verdict || normalizeStatus(submission.status)}
+                      </span>
+                    </td>
+                    {showActions && (
+                      <td className="py-3 px-4">
+                        <Button
+                          onClick={() => openModal(submission)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Ver detalhes
+                        </Button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
-      
+
       {selectedSubmissionId && selectedSubmissionData && (
         <SubmissionStatusModal
           isOpen={showModal}
@@ -158,7 +158,7 @@ export default function SubmissionsTable({ submissions, showActions = false }: S
           initialVerdict={selectedSubmissionData.verdict}
           code={selectedSubmissionData.code}
           questionName={selectedSubmissionData.questionName || selectedSubmissionData.question?.name}
-          questionListTitle={selectedSubmissionData.questionListTitle|| selectedSubmissionData.questionList?.name}
+          questionListTitle={selectedSubmissionData.questionListTitle || selectedSubmissionData.questionList?.name}
         />
       )}
     </div>

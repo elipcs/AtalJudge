@@ -306,7 +306,7 @@ export default function QuestoesPage() {
                                                     <td className="py-3 px-4">
                                                         <div
                                                             className="font-medium text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
-                                                            onClick={() => router.push(`/questoes/${question.id}`)}
+                                                            onClick={() => router.push(`/questoes/detalhes?id=${question.id}`)}
                                                         >
                                                             {question.title}
                                                         </div>

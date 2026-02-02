@@ -146,7 +146,7 @@ export function useListPage() {
     setCode('');
     setSubmissionResult(null);
 
-    router.push(`/listas/${questionListId}#questao-${question.id}`);
+    router.push(`/listas/detalhes?id=${questionListId}#questao-${question.id}`);
   }, [questionListId, router]);
 
   const goBack = useCallback(() => {
@@ -154,7 +154,7 @@ export function useListPage() {
     setSelectedQuestion(null);
     setCode('');
     setSubmissionResult(null);
-    router.push(`/listas/${questionListId}`);
+    router.push(`/listas/detalhes?id=${questionListId}`);
   }, [questionListId, router]);
 
   const handleSubmit = useCallback(async () => {

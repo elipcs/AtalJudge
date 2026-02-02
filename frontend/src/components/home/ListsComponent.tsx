@@ -145,7 +145,7 @@ export default function ListsComponent() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     )}
-                    <Link href={`/listas/${listWithStatus.id}`} className="text-lg font-medium text-gray-900 hover:text-blue-600">
+                    <Link href={`/listas/detalhes?id=${listWithStatus.id}`} className="text-lg font-medium text-gray-900 hover:text-blue-600">
                       {listWithStatus.title}
                     </Link>
                   </div>
@@ -160,7 +160,7 @@ export default function ListsComponent() {
                       </svg>
                       <div className="flex flex-col">
                         <span className={`font-medium ${listWithStatus.calculatedStatus === 'open' ? 'text-green-700' :
-                            listWithStatus.calculatedStatus === 'scheduled' ? 'text-blue-700' : 'text-red-700'
+                          listWithStatus.calculatedStatus === 'scheduled' ? 'text-blue-700' : 'text-red-700'
                           }`}>
                           {listWithStatus.calculatedStatus === 'open' && listWithStatus.endDate
                             ? `Encerra em ${formatDateTime(listWithStatus.endDate)}`
@@ -181,10 +181,10 @@ export default function ListsComponent() {
                   </div>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${listWithStatus.calculatedStatus === 'open'
-                    ? 'bg-green-100 text-green-800'
-                    : listWithStatus.calculatedStatus === 'scheduled'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-red-100 text-red-800'
+                  ? 'bg-green-100 text-green-800'
+                  : listWithStatus.calculatedStatus === 'scheduled'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-red-100 text-red-800'
                   }`}>
                   {listWithStatus.calculatedStatus === 'open' ? 'Aberta' :
                     listWithStatus.calculatedStatus === 'scheduled' ? 'Agendada' : 'Encerrada'}

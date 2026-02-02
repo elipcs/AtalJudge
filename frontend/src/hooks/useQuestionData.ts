@@ -92,11 +92,11 @@ export const useQuestionData = () => {
       if (response) {
         const updatedSubmissions = await loadSubmissions(question.id, questionListId);
         setSubmissions(updatedSubmissions);
-        
-        return { 
-          success: true, 
+
+        return {
+          success: true,
           message: 'Código submetido com sucesso!',
-          submissionId: response.id 
+          submissionId: response.id
         };
       } else {
         return { success: false, message: 'Erro ao submeter código' };
@@ -110,7 +110,7 @@ export const useQuestionData = () => {
 
   const navigateToQuestion = (newIndex: number) => {
     if (newIndex >= 0 && newIndex < allQuestions.length) {
-      router.push(`/listas/${questionListId}/questoes?q=${newIndex}`);
+      router.push(`/listas/questoes?id=${questionListId}&q=${newIndex}`);
     }
   };
 

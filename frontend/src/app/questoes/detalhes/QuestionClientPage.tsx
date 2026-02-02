@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -17,9 +17,9 @@ const MarkdownRenderer = dynamic(() => import("@/components/MarkdownRenderer"), 
 
 export default function QuestionDetailPage() {
     const router = useRouter();
-    const params = useParams();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
-    const questionId = params.id as string;
+    const questionId = searchParams.get('id') || '';
 
     const [question, setQuestion] = useState<Question | null>(null);
     const [loading, setLoading] = useState(true);
@@ -108,7 +108,7 @@ export default function QuestionDetailPage() {
                         </h1>
                     </div>
                 </div>
-                <Link href={`/questoes/${questionId}/editar`}>
+                <Link href={`/questoes/editar?id=${questionId}`}>
                     <Button
                         variant="outline"
                         className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold"

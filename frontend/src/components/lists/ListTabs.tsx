@@ -22,13 +22,13 @@ export default function ListTabs({ id, activeTab, hasQuestions, userRole: _userR
         {activeTab === 'lista' ? (
           <span className={`${activeBase} ${activeRoleClass}`}>Lista</span>
         ) : (
-          <Link href={`/listas/${id}`} className={inactiveBase}>Lista</Link>
+          <Link href={`/listas/detalhes?id=${id}`} className={inactiveBase}>Lista</Link>
         )}
 
         {activeTab === 'questoes' ? (
           <span className={`${activeBase} ${activeRoleClass}`}>Questões</span>
         ) : hasQuestions ? (
-          <Link href={`/listas/${id}/questoes`} className={inactiveBase}>Questões</Link>
+          <Link href={`/listas/questoes?id=${id}`} className={inactiveBase}>Questões</Link>
         ) : (
           <span aria-disabled className={disabledBase}>Questões</span>
         )}
