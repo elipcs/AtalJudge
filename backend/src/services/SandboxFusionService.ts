@@ -309,7 +309,7 @@ export class SandboxFusionService {
             const stdinPart = stdin ? '< /code/stdin.txt' : '';
 
             // Basic resource limits (Docker flags)
-            const timeLimitFn = limits?.cpuTimeLimit ? limits.cpuTimeLimit + 1 : 5; // Add buffer to docker timeout
+            const timeLimitFn = limits?.cpuTimeLimit ? limits.cpuTimeLimit + 3 : 10; // Add generous buffer (3s) for Docker startup
 
             const dockerRunCmd = `timeout ${timeLimitFn}s docker run --rm \
         -v "${workDir}:/code" \
@@ -324,9 +324,14 @@ export class SandboxFusionService {
             const startTime = process.hrtime();
             const { stdout, stderr } = await execAsync(dockerRunCmd);
             const [seconds, nanoseconds] = process.hrtime(startTime);
-            const timeInSeconds = seconds + nanoseconds / 1e9;
+            const rawTimeInSeconds = seconds + nanoseconds / 1e9;
 
-            logger.info(`[SandboxFusion] Execution finished`, { stdout, stderr, timeInSeconds });
+            // Deduct Docker startup overhead (estimated 1.5s for VM environments)
+            // We floor at 0.01s to ensure positive time
+            const CONTAINER_OVERHEAD = 1.5;
+            const timeInSeconds = Math.max(0.01, rawTimeInSeconds - CONTAINER_OVERHEAD);
+
+            logger.info(`[SandboxFusion] Execution finished`, { stdout, stderr, rawTime: rawTimeInSeconds, adjustedTime: timeInSeconds });
 
             // Check against limits
             if (limits?.cpuTimeLimit && timeInSeconds > limits.cpuTimeLimit) {
