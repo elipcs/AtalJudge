@@ -225,7 +225,8 @@ export class SandboxFusionService {
         return {
             verdict,
             passed,
-            executionTimeMs: status.time ? parseFloat(status.time) * 1000 : undefined,
+            // FIX: Round to integer to avoid Postgres errors with floats
+            executionTimeMs: status.time ? Math.round(parseFloat(status.time) * 1000) : undefined,
             memoryUsedKb: status.memory,
             output: stdout?.trim(),
             errorMessage: stderr || compileOutput || message
@@ -307,29 +308,28 @@ export class SandboxFusionService {
             // Execution Phase
             const runCmd = plan.runCmd;
             const stdinPart = stdin ? '< /code/stdin.txt' : '';
+            const containerName = plan.containerName;
 
-            // Basic resource limits (Docker flags)
-            const timeLimitFn = limits?.cpuTimeLimit ? limits.cpuTimeLimit + 15 : 20; // Massive buffer (15s) for slow VM Docker startup
+            // Use persistent containers via "docker exec" for instant startup (no massive overhead)
+            // Added 2s buffer for network/process spawn overhead + cpuTimeLimit
+            const timeLimitFn = limits?.cpuTimeLimit ? limits.cpuTimeLimit + 2 : 5;
 
-            const dockerRunCmd = `timeout ${timeLimitFn}s docker run --rm \
-        -v "${workDir}:/code" \
-        -w /code \
-        --network none \
-        --pids-limit 64 \
-        ${plan.image} \
-        sh -c "${runCmd} ${stdinPart}"`;
+            // We run "sh -c" inside the execution container
+            const internalCmd = `cd /code && ${runCmd} ${stdinPart}`;
 
-            logger.info(`[SandboxFusion] Executing: ${dockerRunCmd}`);
+            // Timeout command runs on host to limit the docker exec client
+            const dockerExecCmd = `timeout ${timeLimitFn}s docker exec ${containerName} sh -c "${internalCmd}"`;
+
+            logger.info(`[SandboxFusion] Executing: ${dockerExecCmd}`);
 
             const startTime = process.hrtime();
-            const { stdout, stderr } = await execAsync(dockerRunCmd);
+            const { stdout, stderr } = await execAsync(dockerExecCmd);
             const [seconds, nanoseconds] = process.hrtime(startTime);
             const rawTimeInSeconds = seconds + nanoseconds / 1e9;
 
-            // Deduct Docker startup overhead (High overhead for VM: 4.0s)
-            // We floor at 0.01s to ensure positive time
-            const CONTAINER_OVERHEAD = 4.0;
-            const timeInSeconds = Math.max(0.01, rawTimeInSeconds - CONTAINER_OVERHEAD);
+            // Overhead is negligible with warm containers (~0.05s)
+            const EXEC_OVERHEAD = 0.05;
+            const timeInSeconds = Math.max(0.001, rawTimeInSeconds - EXEC_OVERHEAD);
 
             logger.info(`[SandboxFusion] Execution finished`, { stdout, stderr, rawTime: rawTimeInSeconds, adjustedTime: timeInSeconds });
 
@@ -369,6 +369,7 @@ export class SandboxFusionService {
 
     private getExecutionPlan(language: ProgrammingLanguage): {
         image: string;
+        containerName: string;
         filename: string;
         compileCmd?: string;
         runCmd: string;
@@ -377,12 +378,14 @@ export class SandboxFusionService {
             case ProgrammingLanguage.PYTHON:
                 return {
                     image: 'python:3.10-alpine',
+                    containerName: 'ataljudge-executor-python',
                     filename: 'main.py',
                     runCmd: 'python3 main.py'
                 };
             case ProgrammingLanguage.JAVA:
                 return {
                     image: 'eclipse-temurin:17-alpine',
+                    containerName: 'ataljudge-executor-java',
                     filename: 'Main.java',
                     compileCmd: 'javac Main.java',
                     runCmd: 'java Main'
