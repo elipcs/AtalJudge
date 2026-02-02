@@ -315,7 +315,8 @@ export class SandboxFusionService {
             const timeLimitFn = limits?.cpuTimeLimit ? limits.cpuTimeLimit + 2 : 5;
 
             // We run "sh -c" inside the execution container
-            const internalCmd = `cd /code && ${runCmd} ${stdinPart}`;
+            // Since we mount the same volume path in executor as in backend, workDir is valid there too
+            const internalCmd = `cd ${workDir} && ${runCmd} ${stdinPart}`;
 
             // Timeout command runs on host to limit the docker exec client
             const dockerExecCmd = `timeout ${timeLimitFn}s docker exec ${containerName} sh -c "${internalCmd}"`;
