@@ -77,7 +77,7 @@ services:
       - /tmp/ataljudge-executions:/tmp/ataljudge-executions
 
   judge0-server:
-    image: judge0/judge0:1.13.0
+    image: judge0/judge0:1.13.1
     volumes:
       - ./judge0.conf:/judge0.conf:ro
     ports:
@@ -96,7 +96,7 @@ services:
     restart: always
 
   judge0-worker:
-    image: judge0/judge0:1.13.0
+    image: judge0/judge0:1.13.1
     command: [ "./scripts/workers" ]
     volumes:
       - ./judge0.conf:/judge0.conf:ro
