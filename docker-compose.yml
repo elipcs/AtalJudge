@@ -100,6 +100,7 @@ services:
     command: [ "./scripts/workers" ]
     volumes:
       - ./judge0.conf:/judge0.conf:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     privileged: true
     environment:
       - REDIS_HOST=judge0-redis
