@@ -76,21 +76,23 @@ services:
 
   executor-python:
     container_name: ataljudge-executor-python
-    image: python:3.10-alpine
-    command: tail -f /dev/null
+    build:
+      context: ./backend/executor
+      dockerfile: Dockerfile.python
     restart: always
     mem_limit: 128m
-    volumes:
-      - /tmp/ataljudge-executions:/tmp/ataljudge-executions
+    expose:
+      - "3000"
 
   executor-java:
     container_name: ataljudge-executor-java
-    image: eclipse-temurin:17-alpine
-    command: tail -f /dev/null
+    build:
+      context: ./backend/executor
+      dockerfile: Dockerfile.java
     restart: always
     mem_limit: 256m
-    volumes:
-      - /tmp/ataljudge-executions:/tmp/ataljudge-executions
+    expose:
+      - "3000"
 
 volumes:
   backend-db-data:
