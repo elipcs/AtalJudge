@@ -271,9 +271,9 @@ export class Judge0Service {
             case 9:
             case 10:
             case 11:
-            case 12: return JudgeVerdict.RUNTIME_ERROR;
-            case 13: return JudgeVerdict.INTERNAL_ERROR;
-            default: return JudgeVerdict.JUDGE_ERROR;
+            case 12:
+            case 13: return JudgeVerdict.RUNTIME_ERROR; // Map Internal Error (13) to Runtime Error to fit DB enum
+            default: return JudgeVerdict.RUNTIME_ERROR; // Fallback to Runtime Error instead of Judge Error
         }
     }
 }
