@@ -155,7 +155,6 @@ export function setupContainer(): void {
   container.registerSingleton(AllowedIPRepository);
 
   container.registerSingleton(EmailService);
-  import { Judge0Service } from '../services/Judge0Service';
   container.registerSingleton(Judge0Service);
   container.registerSingleton(PasswordResetService);
   container.registerSingleton(RefreshTokenService);
