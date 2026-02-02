@@ -62,6 +62,8 @@ services:
         condition: service_healthy
       backend-redis:
         condition: service_healthy
+      judge0-server:
+        condition: service_started
     restart: always
     mem_limit: 512m
     healthcheck:
@@ -73,6 +75,60 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/ataljudge-executions:/tmp/ataljudge-executions
+
+  judge0-server:
+    image: judge0/judge0:1.13.0
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    ports:
+      - "2358:2358"
+    privileged: true
+    environment:
+      - REDIS_HOST=judge0-redis
+      - REDIS_PASSWORD=${JUDGE0_REDIS_PASSWORD:-judge0redis}
+      - POSTGRES_USER=${JUDGE0_DB_USER:-judge0}
+      - POSTGRES_PASSWORD=${JUDGE0_DB_PASSWORD:-judge0password}
+      - POSTGRES_DB=${JUDGE0_DB_NAME:-judge0}
+      - POSTGRES_HOST=judge0-db
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    restart: always
+
+  judge0-worker:
+    image: judge0/judge0:1.13.0
+    command: [ "./scripts/workers" ]
+    volumes:
+      - ./judge0.conf:/judge0.conf:ro
+    privileged: true
+    environment:
+      - REDIS_HOST=judge0-redis
+      - REDIS_PASSWORD=${JUDGE0_REDIS_PASSWORD:-judge0redis}
+      - POSTGRES_USER=${JUDGE0_DB_USER:-judge0}
+      - POSTGRES_PASSWORD=${JUDGE0_DB_PASSWORD:-judge0password}
+      - POSTGRES_DB=${JUDGE0_DB_NAME:-judge0}
+      - POSTGRES_HOST=judge0-db
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    restart: always
+
+  judge0-db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_USER=${JUDGE0_DB_USER:-judge0}
+      - POSTGRES_PASSWORD=${JUDGE0_DB_PASSWORD:-judge0password}
+      - POSTGRES_DB=${JUDGE0_DB_NAME:-judge0}
+    volumes:
+      - /data/ataljudge/judge0-db:/var/lib/postgresql/data
+    restart: always
+
+  judge0-redis:
+    image: redis:6-alpine
+    command: [ "redis-server", "--requirepass", "${JUDGE0_REDIS_PASSWORD:-judge0redis}" ]
+    volumes:
+      - /data/ataljudge/judge0-redis:/data
+    restart: always
 
 volumes:
   backend-db-data:

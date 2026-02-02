@@ -26,7 +26,7 @@ import { AllowedIPRepository } from '../repositories/AllowedIPRepository';
 
 
 import { EmailService } from '../services/EmailService';
-import { LocalExecutionService } from '../services/LocalExecutionService';
+import { Judge0Service } from '../services/Judge0Service';
 import { PasswordResetService } from '../services/PasswordResetService';
 import { RefreshTokenService } from '../services/RefreshTokenService';
 import { InviteService } from '../services/InviteService';
@@ -155,7 +155,8 @@ export function setupContainer(): void {
   container.registerSingleton(AllowedIPRepository);
 
   container.registerSingleton(EmailService);
-  container.registerSingleton(LocalExecutionService);
+  import { Judge0Service } from '../services/Judge0Service';
+  container.registerSingleton(Judge0Service);
   container.registerSingleton(PasswordResetService);
   container.registerSingleton(RefreshTokenService);
   container.registerSingleton(InviteService);

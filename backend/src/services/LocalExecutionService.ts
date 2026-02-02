@@ -335,14 +335,19 @@ export class LocalExecutionService {
         } catch (error: any) {
             // Check if timeout (exit code 124 is standard for timeout command)
             // WE MUST NOT check error.message.includes('timeout') blindly because it contains the command itself!
-            if (error.code === 124) {
+            // Check if timeout (exit code 124, 137, or 143 are common for timeout/kill)
+            // 124 = timeout utility default
+            // 137 = SIGKILL (128 + 9)
+            // 143 = SIGTERM (128 + 15)
+            if (error.code === 124 || error.code === 137 || error.code === 143) {
                 this.updateStatus(token, 5, 'Time Limit Exceeded');
             } else if (error.stderr) {
                 logger.error('Docker execution failed with stderr', { token, stderr: error.stderr, code: error.code });
                 this.updateStatus(token, 11, 'Runtime Error', { stderr: error.stderr });
             } else {
                 logger.error('Docker execution failed with internal error', { token, message: error.message, code: error.code });
-                this.updateStatus(token, 13, 'Internal Error', { message: error.message });
+                // Fallback to RUNTIME_ERROR (id 11) because 'Internal Error' (id 13) might not be in the strict DB enum
+                this.updateStatus(token, 11, 'Runtime Error', { message: error.message });
             }
         } finally {
             // Cleanup

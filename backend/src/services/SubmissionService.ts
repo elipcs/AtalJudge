@@ -15,7 +15,7 @@ import { injectable, inject } from 'tsyringe';
 import { SubmissionRepository, SubmissionResultRepository, QuestionRepository, TestCaseRepository, QuestionListRepository } from '../repositories';
 import { CreateSubmissionDTO, SubmissionResponseDTO, SubmissionDetailDTO, TestCaseResultDTO } from '../dtos';
 import { SubmissionStatus, JudgeVerdict, ProgrammingLanguage } from '../enums';
-import { LocalExecutionService } from './LocalExecutionService';
+import { Judge0Service } from './Judge0Service';
 import { SubmissionQueueService } from './SubmissionQueueService';
 import { GradeService } from './GradeService';
 import { logger, NotFoundError, ValidationError } from '../utils';
@@ -33,7 +33,7 @@ export class SubmissionService {
     @inject(SubmissionResultRepository) private submissionResultRepository: SubmissionResultRepository,
     @inject(QuestionRepository) private questionRepository: QuestionRepository,
     @inject(TestCaseRepository) private testCaseRepository: TestCaseRepository,
-    @inject(LocalExecutionService) private judgeService: LocalExecutionService,
+    @inject(Judge0Service) private judgeService: Judge0Service,
     @inject(GradeService) private gradeService: GradeService,
     @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
     @inject('SubmissionQueueService') private queueService?: SubmissionQueueService
@@ -286,7 +286,7 @@ export class SubmissionService {
         expectedOutput: testCase.expectedOutput
       }));
 
-      logger.info('Sending submission to Local Execution', {
+      logger.info('Sending submission to Judge0', {
         submissionId,
         testCases: batchSubmissions.length
       });
@@ -306,7 +306,7 @@ export class SubmissionService {
         }
       );
 
-      logger.info('Local Execution results received', {
+      logger.info('Judge0 results received', {
         submissionId,
         resultCount: results.length
       });
