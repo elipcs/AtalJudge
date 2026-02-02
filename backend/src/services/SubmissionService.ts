@@ -286,7 +286,7 @@ export class SubmissionService {
         expectedOutput: testCase.expectedOutput
       }));
 
-      logger.info('Sending submission to Judge0', {
+      logger.info('Sending submission to SandboxFusion', {
         submissionId,
         testCases: batchSubmissions.length
       });

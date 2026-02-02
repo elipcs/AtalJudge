@@ -262,6 +262,9 @@ export class SandboxFusionService {
         stdin: string | undefined,
         limits: any
     ) {
+        // Log the environment for debugging
+        logger.info(`[SandboxFusion] Preparing execution for ${token}`, { language, limits });
+
         const workDir = path.join(this.TEMP_DIR, token);
 
         try {
@@ -272,7 +275,9 @@ export class SandboxFusionService {
             const plan = this.getExecutionPlan(language);
 
             // Write source code
-            await fs.writeFile(path.join(workDir, plan.filename), sourceCode);
+            const filePath = path.join(workDir, plan.filename);
+            await fs.writeFile(filePath, sourceCode);
+            logger.info(`[SandboxFusion] Wrote code to ${filePath}`);
 
             // Write stdin if present
             if (stdin) {
@@ -289,9 +294,11 @@ export class SandboxFusionService {
             ${plan.image} \
             sh -c "${plan.compileCmd}"`;
 
+                    logger.info(`[SandboxFusion] Compiling: ${compileCmdFull}`);
                     await execAsync(compileCmdFull);
                 } catch (compileError: any) {
                     const stderr = compileError.stderr || compileError.message;
+                    logger.error(`[SandboxFusion] Compilation failed`, { stderr });
                     this.updateStatus(token, 6, 'Compilation Error', { compileOutput: stderr });
                     return;
                 }
@@ -302,8 +309,6 @@ export class SandboxFusionService {
             const stdinPart = stdin ? '< /code/stdin.txt' : '';
 
             // Basic resource limits (Docker flags)
-            // Note: limits.cpuTimeLimit is in seconds often, --cpus expects float. 
-            // This is a naive translation.
             const timeLimitFn = limits?.cpuTimeLimit ? limits.cpuTimeLimit + 1 : 5; // Add buffer to docker timeout
 
             const dockerRunCmd = `timeout ${timeLimitFn}s docker run --rm \
@@ -314,10 +319,14 @@ export class SandboxFusionService {
         ${plan.image} \
         sh -c "${runCmd} ${stdinPart}"`;
 
+            logger.info(`[SandboxFusion] Executing: ${dockerRunCmd}`);
+
             const startTime = process.hrtime();
             const { stdout, stderr } = await execAsync(dockerRunCmd);
             const [seconds, nanoseconds] = process.hrtime(startTime);
             const timeInSeconds = seconds + nanoseconds / 1e9;
+
+            logger.info(`[SandboxFusion] Execution finished`, { stdout, stderr, timeInSeconds });
 
             // Check against limits
             if (limits?.cpuTimeLimit && timeInSeconds > limits.cpuTimeLimit) {
@@ -329,28 +338,22 @@ export class SandboxFusionService {
                 stdout,
                 stderr,
                 time: timeInSeconds.toFixed(3),
-                memory: 0 // Memory metrics are hard to get accurately from simple docker run without cgroup reading
+                memory: 0
             });
 
         } catch (error: any) {
-            // Check if timeout (exit code 124 is standard for timeout command)
-            // WE MUST NOT check error.message.includes('timeout') blindly because it contains the command itself!
-            // Check if timeout (exit code 124, 137, or 143 are common for timeout/kill)
-            // 124 = timeout utility default
-            // 137 = SIGKILL (128 + 9)
-            // 143 = SIGTERM (128 + 15)
+            logger.error(`[SandboxFusion] Execution Error Catch`, { code: error.code, message: error.message, stderr: error.stderr });
+
             if (error.code === 124 || error.code === 137 || error.code === 143) {
                 this.updateStatus(token, 5, 'Time Limit Exceeded');
             } else if (error.stderr) {
-                logger.error('Docker execution failed with stderr', { token, stderr: error.stderr, code: error.code });
                 this.updateStatus(token, 11, 'Runtime Error', { stderr: error.stderr });
             } else {
-                logger.error('Docker execution failed with internal error', { token, message: error.message, code: error.code });
-                // Fallback to RUNTIME_ERROR (id 11) because 'Internal Error' (id 13) might not be in the strict DB enum
+                // Fallback
                 this.updateStatus(token, 11, 'Runtime Error', { message: error.message });
             }
         } finally {
-            // Cleanup
+            // Cleanup - commented out for debugging if needed, but keeping for now
             try {
                 await fs.rm(workDir, { recursive: true, force: true });
             } catch (e) {

@@ -74,16 +74,17 @@ export default function CodeEditor({
                         height: "100%",
                         background: "#1e1e1e",
                         fontSize: "14px",
-                        lineHeight: "1.6",
-                        fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace",
+                        lineHeight: "24px", // Fixed line height for better alignment
+                        fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
                         opacity: isPlaceholder ? 0.5 : 1,
                     }}
                     showLineNumbers
                     lineNumberStyle={{
-                        minWidth: "2em",
+                        minWidth: "3em", // Fixed width for line numbers
                         paddingRight: "1em",
                         color: "#64748b",
                         userSelect: "none",
+                        textAlign: "right",
                     }}
                 >
                     {displayCode}
@@ -99,14 +100,16 @@ export default function CodeEditor({
                 onScroll={handleScroll}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                className="absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-blue-400 outline-none"
+                className="absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-blue-400 outline-none p-0 m-0 border-0"
                 style={{
                     minHeight,
                     padding: "16px",
-                    paddingLeft: "56px",
+                    paddingLeft: "calc(3em + 1em + 16px)", // Match SyntaxHighlighter padding + line number width
                     fontSize: "14px",
-                    lineHeight: "1.6",
-                    fontFamily: "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace",
+                    lineHeight: "24px", // Fixed line height MUST match above
+                    fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
+                    whiteSpace: "pre", // Critical for alignment
+                    overflow: "auto", // Match scrolling behavior
                 }}
                 spellCheck={false}
                 autoComplete="off"
