@@ -15,7 +15,7 @@ import rateLimit from 'express-rate-limit';
  * Window: 15 minutes, Max: 100 requests
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
+  windowMs: 60000, 
   max: 100, 
   message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
   standardHeaders: true,
@@ -32,8 +32,8 @@ export const authRateLimiter = rateLimit({
 });
 
 export const registerRateLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, 
-  max: 3, 
+  windowMs: 60000, 
+  max: 100, 
   message: 'Muitas tentativas de registro. Tente novamente em 1 hora.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -48,8 +48,8 @@ export const registerRateLimiter = rateLimit({
 });
 
 export const passwordResetRateLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, 
-  max: 3, 
+  windowMs: 60000, 
+  max: 100, 
   message: 'Muitas tentativas de recuperação de senha. Tente novamente em 1 hora.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -64,7 +64,7 @@ export const passwordResetRateLimiter = rateLimit({
 });
 
 export const submissionRateLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, 
+  windowMs: 60000, 
   max: 10, 
   message: 'Muitas submissões. Aguarde um momento.',
   standardHeaders: true,
