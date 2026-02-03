@@ -79,6 +79,7 @@ export default function CodeEditor({
                         letterSpacing: "normal",
                         fontVariantLigatures: "none",
                         opacity: isPlaceholder ? 0.5 : 1,
+                        fontWeight: "400", // Force normal weight to ensure cursor alignment
                     }}
                     showLineNumbers
                     lineNumberStyle={{
