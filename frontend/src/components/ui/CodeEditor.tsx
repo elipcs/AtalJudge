@@ -23,6 +23,7 @@ export default function CodeEditor({
 }: CodeEditorProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const preRef = useRef<HTMLPreElement>(null);
+    const lineNumbersRef = useRef<HTMLDivElement>(null);
     const [isFocused, setIsFocused] = useState(false);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -42,9 +43,17 @@ export default function CodeEditor({
     };
 
     const handleScroll = () => {
-        if (textareaRef.current && preRef.current) {
-            preRef.current.scrollTop = textareaRef.current.scrollTop;
-            preRef.current.scrollLeft = textareaRef.current.scrollLeft;
+        if (textareaRef.current) {
+            const { scrollTop, scrollLeft } = textareaRef.current;
+            // Sync Highlighter
+            if (preRef.current) {
+                preRef.current.scrollTop = scrollTop;
+                preRef.current.scrollLeft = scrollLeft;
+            }
+            // Sync Line Numbers (Vertical only)
+            if (lineNumbersRef.current) {
+                lineNumbersRef.current.scrollTop = scrollTop;
+            }
         }
     };
 
@@ -52,76 +61,101 @@ export default function CodeEditor({
     const displayCode = value || placeholder;
     const isPlaceholder = !value;
 
+    // Generate line numbers
+    const lineCount = (value || "").split("\n").length;
+    const lines = Array.from({ length: Math.max(lineCount, 1) }, (_, i) => i + 1);
+
+    const fontStyle = {
+        fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
+        fontSize: "14px",
+        lineHeight: "24px",
+        letterSpacing: "normal",
+        fontVariantLigatures: "none",
+        fontWeight: "400", // Critical for cursor alignment
+    };
+
+    // Layout configuration
+    const LINE_NUMBER_WIDTH = 50;
+    const GAP = 10;
+    const PADDING_LEFT = 10;
+    const TOTAL_PADDING_LEFT = PADDING_LEFT; // Editor area starts after the sidebar
+
     return (
         <div
-            className={`relative rounded-xl overflow-hidden ${isFocused ? "ring-2 ring-blue-500" : ""} ${className}`}
+            className={`relative flex rounded-xl overflow-hidden ${isFocused ? "ring-2 ring-blue-500" : ""} ${className}`}
             style={{ minHeight, backgroundColor: "#1e1e1e" }}
         >
-            {/* Syntax highlighted layer */}
-            <pre
-                ref={preRef}
-                className="absolute inset-0 overflow-auto pointer-events-none m-0"
-                style={{ minHeight }}
+            {/* Line Numbers Sidebar */}
+            <div
+                ref={lineNumbersRef}
+                className="flex-none flex flex-col items-end text-right text-gray-500 select-none overflow-hidden bg-[#1e1e1e] border-r border-gray-800"
+                style={{
+                    width: `${LINE_NUMBER_WIDTH}px`,
+                    paddingRight: `${GAP}px`,
+                    paddingTop: "10px", // Match editor padding
+                    ...fontStyle
+                }}
             >
-                <SyntaxHighlighter
-                    language={language}
-                    style={vscDarkPlus}
-                    customStyle={{
+                {lines.map((n) => (
+                    <div key={n} style={{ height: "24px" }}>{n}</div>
+                ))}
+            </div>
+
+            {/* Editor Area Container */}
+            <div className="relative flex-1 bg-[#1e1e1e] overflow-hidden">
+                {/* Syntax highlighted layer */}
+                <pre
+                    ref={preRef}
+                    className="absolute inset-0 overflow-auto pointer-events-none m-0 scrollbar-hide"
+                    style={{
                         margin: 0,
-                        padding: "10px", // Base padding
-                        paddingLeft: "60px", // Total left padding (LineNumWidth + Gap + BasePadding) -> 40px + 10px + 10px = 60px
-                        minHeight,
-                        height: "100%",
-                        background: "#1e1e1e",
-                        fontSize: "14px",
-                        lineHeight: "24px",
-                        fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
-                        letterSpacing: "normal",
-                        fontVariantLigatures: "none",
-                        opacity: isPlaceholder ? 0.5 : 1,
-                        fontWeight: "400", // Force normal weight to ensure cursor alignment
-                    }}
-                    showLineNumbers
-                    lineNumberStyle={{
-                        minWidth: "40px", // Fixed pixel width
-                        paddingRight: "10px", // Fixed pixel gap
-                        color: "#64748b",
-                        userSelect: "none",
-                        textAlign: "right",
-                        marginRight: "10px", // IMPORTANT: SyntaxHighlighter often adds margin to line numbers
+                        // Hide scrollbars for the pre layer since textarea handles scrolling
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none'
                     }}
                 >
-                    {displayCode}
-                </SyntaxHighlighter>
-            </pre>
+                    <SyntaxHighlighter
+                        language={language}
+                        style={vscDarkPlus}
+                        customStyle={{
+                            margin: 0,
+                            padding: "10px", // Base padding
+                            paddingLeft: `${TOTAL_PADDING_LEFT}px`,
+                            minHeight: "100%",
+                            background: "transparent", // Transparent to show dark bg
+                            overflow: "hidden", // Let pre handle overflow
+                            opacity: isPlaceholder ? 0.5 : 1,
+                            ...fontStyle
+                        }}
+                        showLineNumbers={false} // Disable internal line numbers
+                    >
+                        {displayCode}
+                    </SyntaxHighlighter>
+                </pre>
 
-            {/* Editable textarea (invisible text, visible caret) */}
-            <textarea
-                ref={textareaRef}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onScroll={handleScroll}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                className="absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-blue-400 outline-none p-0 m-0 border-0"
-                style={{
-                    minHeight,
-                    padding: "10px", // Base padding
-                    paddingLeft: "60px", // MUST MATCH SyntaxHighlighter total paddingLeft exactly
-                    fontSize: "14px",
-                    lineHeight: "24px",
-                    fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
-                    letterSpacing: "normal",
-                    fontVariantLigatures: "none",
-                    whiteSpace: "pre",
-                    overflow: "auto",
-                }}
-                spellCheck={false}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-            />
+                {/* Editable textarea (invisible text, visible caret) */}
+                <textarea
+                    ref={textareaRef}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onScroll={handleScroll}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    className="absolute inset-0 w-full h-full resize-none bg-transparent text-transparent caret-blue-400 outline-none p-0 m-0 border-0"
+                    style={{
+                        padding: "10px", // Base padding
+                        paddingLeft: `${TOTAL_PADDING_LEFT}px`,
+                        whiteSpace: "pre",
+                        overflow: "auto",
+                        ...fontStyle
+                    }}
+                    spellCheck={false}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                />
+            </div>
         </div>
     );
 }
