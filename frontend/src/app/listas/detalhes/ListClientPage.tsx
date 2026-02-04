@@ -416,7 +416,12 @@ export default function ListClientPage() {
                                 <div key={question.id}>
                                     {groupHeader}
                                     <div
-                                        className="border border-slate-200 rounded-2xl p-6 bg-gradient-to-r from-slate-50 to-slate-100 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                                        className={`border rounded-2xl p-6 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md ${submission?.score === 100
+                                            ? 'bg-gradient-to-r from-green-50 to-white border-green-200 hover:border-green-300 ring-1 ring-green-100'
+                                            : submission
+                                                ? 'bg-gradient-to-r from-blue-50 to-white border-blue-200 hover:border-blue-300'
+                                                : 'bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200 hover:border-slate-300'
+                                            }`}
                                         onClick={() => {
                                             router.push(`/listas/questoes?id=${id}&q=${index}`);
                                         }}
@@ -429,16 +434,25 @@ export default function ListClientPage() {
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 {submission && (
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
-                                                            {submission.status === 'accepted' ? 'Aceita' :
-                                                                submission.status === 'error' ? 'Erro' :
-                                                                    submission.status === 'pending' ? 'Pendente' :
-                                                                        submission.status === 'timeout' ? 'Timeout' : 'Enviada'}
-                                                        </span>
-                                                        <span className="text-sm text-slate-600">
-                                                            {submission.score}/100
-                                                        </span>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex flex-col items-end">
+                                                            <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold shadow-sm ${getStatusColor(submission.status)}`}>
+                                                                {submission.status === 'accepted' ? 'Aceita' :
+                                                                    submission.status === 'error' ? 'Erro' :
+                                                                        submission.status === 'pending' ? 'Pendente' :
+                                                                            submission.status === 'timeout' ? 'Timeout' : 'Enviada'}
+                                                            </span>
+                                                            <span className={`text-sm font-bold mt-1 ${submission.score === 100 ? 'text-green-600' : 'text-slate-600'}`}>
+                                                                {submission.score}/100
+                                                            </span>
+                                                        </div>
+                                                        {submission.score === 100 && (
+                                                            <div className="bg-green-100 p-1.5 rounded-full border border-green-200">
+                                                                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                                 {(userRole === 'professor' || userRole === 'assistant') ? (

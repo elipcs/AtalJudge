@@ -119,12 +119,13 @@ export function useListPage() {
 
       const allSubmissions: LocalSubmission[] = [];
       results.forEach(({ question, submissions: questionSubmissions }) => {
+        const totalForQuestion = questionSubmissions.length;
         const localSubmissions = questionSubmissions.map((sub, index) => ({
           id: sub.id,
           questionId: question.id,
           status: (sub.status as any),
           score: sub.score,
-          attempt: index + 1,
+          attempt: totalForQuestion - index,
           submittedAt: typeof sub.createdAt === 'string' ? sub.createdAt : sub.createdAt.toISOString(),
           code: sub.code,
           language: sub.language,
@@ -177,7 +178,7 @@ export function useListPage() {
         status: submission.status.toLowerCase() as 'pending' | 'accepted' | 'error' | 'timeout',
         score: submission.score || 0,
         attempt: submissions.filter(s => s.questionId === selectedQuestion.id).length + 1,
-        submittedAt: typeof submission.createdAt === 'string' ? submission.createdAt : submission.createdAt.toISOString(),
+        submittedAt: typeof submission.createdAt === 'string' ? submission.createdAt : (submission.createdAt as any).toISOString(),
         code: submission.code,
         language: submission.language,
         feedback: undefined
@@ -209,7 +210,14 @@ export function useListPage() {
   const getQuestionSubmission = useCallback((questionId: string) => {
     return submissions
       .filter(s => s.questionId === questionId)
-      .sort((a, b) => b.attempt - a.attempt)[0];
+      .sort((a, b) => {
+        // Primeiro pela melhor pontuação
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        // Se a pontuação for igual, pela tentativa mais recente
+        return b.attempt - a.attempt;
+      })[0];
   }, [submissions]);
 
   const getStatusColor = useCallback((status: string) => {
