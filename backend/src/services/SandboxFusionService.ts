@@ -261,6 +261,11 @@ export class SandboxFusionService {
             if (result.exitCode !== 0) {
                 if (result.stderr && result.stderr.includes('Time Limit Exceeded')) {
                     this.updateStatus(token, 5, 'Time Limit Exceeded', { time: '5.0' });
+                } else if (result.stderr && (result.stderr.includes('OutOfMemory') || result.stderr.includes('Java heap space'))) {
+                    this.updateStatus(token, 14, 'Memory Limit Exceeded', {
+                        memory: limits?.memoryLimit || 0,
+                        stderr: result.stderr
+                    });
                 } else {
                     // 11 is Runtime Error
                     this.updateStatus(token, 11, 'Runtime Error', {
@@ -299,7 +304,7 @@ export class SandboxFusionService {
         language: ProgrammingLanguage,
         code: string,
         stdin: string | undefined,
-        _limits: any
+        limits: any
     ): any {
         const base = {
             code,
@@ -314,10 +319,23 @@ export class SandboxFusionService {
                 args: ['-u', 'main.py']
             };
         } else {
+            // Java specific arguments
+            const args = [];
+
+            // Add memory limit if provided involved in KB
+            if (limits && limits.memoryLimit) {
+                // Convert KB to what Java accepts (e.g. 64000k -> 64000k, or converted to m)
+                // -Xmx expects bytes by default, or k/m/g suffixes.
+                // limits.memoryLimit is in KB.
+                args.push(`-Xmx${limits.memoryLimit}k`);
+            }
+
+            args.push('Main');
+
             return {
                 ...base,
                 cmd: 'java', // The executor handles compilation internally
-                args: []
+                args
             };
         }
     }
@@ -335,6 +353,7 @@ export class SandboxFusionService {
             case 11:
             case 12: return JudgeVerdict.RUNTIME_ERROR;
             case 13: return JudgeVerdict.INTERNAL_ERROR;
+            case 14: return JudgeVerdict.MEMORY_LIMIT_EXCEEDED;
             default: return JudgeVerdict.JUDGE_ERROR;
         }
     }

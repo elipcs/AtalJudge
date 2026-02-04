@@ -80,7 +80,7 @@ services:
       context: ./backend/executor
       dockerfile: Dockerfile.python
     restart: always
-    mem_limit: 128m
+    mem_limit: 512m
     expose:
       - "3000"
 
@@ -90,7 +90,7 @@ services:
       context: ./backend/executor
       dockerfile: Dockerfile.java
     restart: always
-    mem_limit: 256m
+    mem_limit: 512m
     expose:
       - "3000"
 
