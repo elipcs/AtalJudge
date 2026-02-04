@@ -316,7 +316,7 @@ export default function QuestionsClientPage() {
                         <CodeSubmission
                             questionId={activeQuestion.id}
                             questionListId={id}
-                            userRole="professor"
+                            userRole={userRole}
                             questionName={activeQuestion.title}
                             questionListTitle={list?.title}
                             onSubmit={(code, language) => {
