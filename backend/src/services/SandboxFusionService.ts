@@ -245,8 +245,14 @@ export class SandboxFusionService {
 
             logger.info(`[SandboxFusion-HTTP] Posting to ${endpoint}`);
 
+            // Calculate timeout with buffer (Time Limit + 5s for compilation/overhead)
+            // Default: Java 3s, Python 2s if not specified
+            const defaultLimit = language === ProgrammingLanguage.JAVA ? 3 : 2;
+            const cpuLimit = limits?.cpuTimeLimit || defaultLimit;
+            const axiosTimeout = (cpuLimit * 1000) + 5000;
+
             const response = await axios.post(endpoint, payload, {
-                timeout: 10000 // 10s connection timeout
+                timeout: axiosTimeout
             });
 
             const result = response.data;
@@ -285,6 +291,16 @@ export class SandboxFusionService {
 
         } catch (error: any) {
             logger.error(`[SandboxFusion-HTTP] Request Failed`, { message: error.message });
+
+            // Handle Axios Timeout as Time Limit Exceeded
+            if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+                this.updateStatus(token, 5, 'Time Limit Exceeded', {
+                    message: 'Time Limit Exceeded',
+                    time: limits?.cpuTimeLimit ? limits.cpuTimeLimit.toString() : 'TIMEOUT'
+                });
+                return;
+            }
+
             this.updateStatus(token, 13, 'Internal Error', { message: error.message });
         }
     }
@@ -309,7 +325,8 @@ export class SandboxFusionService {
         const base = {
             code,
             stdin: stdin || '', // Empty string if undefined
-            language: language === ProgrammingLanguage.JAVA ? 'java' : 'python'
+            language: language === ProgrammingLanguage.JAVA ? 'java' : 'python',
+            cpuTimeLimit: limits?.cpuTimeLimit
         };
 
         if (language === ProgrammingLanguage.PYTHON) {

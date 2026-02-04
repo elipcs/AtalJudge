@@ -40,6 +40,12 @@ app.post('/run', async (req, res) => {
         let spawnCmd = cmd;
         let spawnArgs = args || [];
 
+        // Default constraints
+        // Java needs more time for JVM startup
+        const defaultTimeLimit = language === 'java' ? 3.0 : 2.0;
+        const timeLimit = req.body.cpuTimeLimit || defaultTimeLimit;
+        const timeoutMs = Math.ceil(timeLimit * 1000);
+
         // Compilation for Java
         if (language === 'java') {
             try {
@@ -88,10 +94,9 @@ app.post('/run', async (req, res) => {
         child.stderr.on('data', (data) => stderr += data.toString());
 
         // Timeout handling
-        const timeoutMs = 5000; // Hard limit for internal process
         const timer = setTimeout(() => {
             child.kill('SIGKILL');
-            stderr += '\nTime Limit Exceeded (Killed by Executor)';
+            stderr += '\nTime Limit Exceeded';
         }, timeoutMs);
 
         child.on('close', (code) => {
