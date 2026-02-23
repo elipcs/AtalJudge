@@ -85,34 +85,28 @@ export const reorderTestCases = async (
   await API.testCases.reorder(questionId, testCaseIds);
 };
 
-export interface GenerateTestCasesRequest {
+export interface GenerateTestCasesOracleRequest {
   oracleCode: string;
   language: 'python' | 'java';
-  count: number;
-  use_supervision?: boolean;
+  inputs: string[];
+  defaultWeight?: number;
 }
 
-export interface GeneratedTestCase {
-  input: string;
-  expectedOutput: string;
+export interface GeneratedOracleResult {
+  createdTestCases: TestCaseResponseDTO[];
+  failedExecutions: Array<{ input: string; error: string }>;
 }
 
-export interface GenerateTestCasesResponse {
-  testCases: GeneratedTestCase[];
-  totalGenerated: number;
-  algorithmTypeDetected?: string;
-}
-
-export const generateTestCases = async (
+export const generateTestCasesOracle = async (
   questionId: string,
-  data: GenerateTestCasesRequest,
+  data: GenerateTestCasesOracleRequest,
   abortSignal?: AbortSignal
-): Promise<GenerateTestCasesResponse> => {
+): Promise<GeneratedOracleResult> => {
   const config: any = { timeout: 600000 }; // 10 minutes
   if (abortSignal) {
     config.signal = abortSignal;
   }
-  const { data: result } = await API.testCases.generate(questionId, data, config);
+  const { data: result } = await API.testCases.generateOracle(questionId, data, config);
   return result;
 };
 

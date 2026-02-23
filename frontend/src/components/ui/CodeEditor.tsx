@@ -66,12 +66,13 @@ export default function CodeEditor({
     const lines = Array.from({ length: Math.max(lineCount, 1) }, (_, i) => i + 1);
 
     const fontStyle = {
-        fontFamily: "'Fira Code', 'Cascadia Code', Consolas, 'Courier New', monospace",
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
         fontSize: "14px",
         lineHeight: "24px",
-        letterSpacing: "normal",
+        letterSpacing: "0px",
         fontVariantLigatures: "none",
-        fontWeight: "400", // Critical for cursor alignment
+        fontFeatureSettings: '"liga" 0',
+        fontWeight: "400",
     };
 
     // Layout configuration
@@ -126,6 +127,12 @@ export default function CodeEditor({
                             overflow: "hidden", // Let pre handle overflow
                             opacity: isPlaceholder ? 0.5 : 1,
                             ...fontStyle
+                        }}
+                        codeTagProps={{
+                            style: {
+                                ...fontStyle,
+                                background: "transparent",
+                            }
                         }}
                         showLineNumbers={false} // Disable internal line numbers
                     >

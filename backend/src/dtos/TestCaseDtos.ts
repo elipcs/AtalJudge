@@ -1,5 +1,27 @@
-import { IsString, IsInt, Min, IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsInt, Min, IsOptional, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ProgrammingLanguage } from '../enums';
+
+/**
+ * DTO for generating test cases from oracle code
+ */
+export class GenerateTestCasesOracleDTO {
+  @IsString()
+  @IsEnum(ProgrammingLanguage)
+  language!: ProgrammingLanguage;
+
+  @IsString()
+  oracleCode!: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  inputs!: string[];
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  defaultWeight?: number;
+}
 
 /**
  * DTO for creating a test case

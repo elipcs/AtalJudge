@@ -170,4 +170,25 @@ export class SubmissionRepository extends BaseRepository<Submission> {
 
     return { submissions, total };
   }
+
+  /**
+   * Get metrics (total and accepted submissions) for questions in a specific question list
+   */
+  async getMetricsByQuestionList(questionListId: string): Promise<{ questionId: string; totalSubmissions: number; acceptedSubmissions: number }[]> {
+    const rawData = await this.repository.createQueryBuilder('submission')
+      .leftJoin('submission.question', 'question')
+      .leftJoin('question.questionLists', 'questionList')
+      .select('submission.questionId', 'questionId')
+      .addSelect('COUNT(submission.id)', 'totalSubmissions')
+      .addSelect(`SUM(CASE WHEN submission.verdict = 'Accepted' OR submission.score = 100 THEN 1 ELSE 0 END)`, 'acceptedSubmissions')
+      .where('questionList.id = :questionListId', { questionListId })
+      .groupBy('submission.questionId')
+      .getRawMany();
+
+    return rawData.map(row => ({
+      questionId: row.questionId,
+      totalSubmissions: parseInt(row.totalSubmissions) || 0,
+      acceptedSubmissions: parseInt(row.acceptedSubmissions) || 0,
+    }));
+  }
 }

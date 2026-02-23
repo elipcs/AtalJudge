@@ -340,6 +340,7 @@ export const API = {
     update: (id: string, data: Partial<QuestionListResponseDTO>) => put<QuestionListResponseDTO>(`/lists/${id}`, data),
     updateScoring: (id: string, data: { scoringMode?: string; maxScore?: number; minQuestionsForMaxScore?: number; questionGroups?: any[] }) =>
       apiClient<QuestionListResponseDTO>(`/lists/${id}/scoring`, { method: 'PATCH', body: JSON.stringify(data) }),
+    metrics: (id: string) => get<Record<string, { totalSubmissions: number; acceptedSubmissions: number }>>(`/lists/${id}/metrics`),
     delete: (id: string) => del<null>(`/lists/${id}`),
     publish: (id: string) => post<QuestionListResponseDTO>(`/lists/${id}/publish`),
     unpublish: (id: string) => post<QuestionListResponseDTO>(`/lists/${id}/unpublish`),
@@ -393,9 +394,9 @@ export const API = {
       post<null>(`/questions/${questionId}/testcases/reorder`, { testCaseIds }),
     bulkUpdate: (questionId: string, data: { testCases: Array<{ id?: string; input: string; expectedOutput: string; weight: number }> }) =>
       put<TestCaseResponseDTO[]>(`/questions/${questionId}/testcases/bulk`, data),
-    generate: (questionId: string, data: { oracleCode: string; language: string; count: number; use_supervision?: boolean }, config?: RequestConfig) =>
-      post<{ testCases: Array<{ input: string; expectedOutput: string }>; totalGenerated: number; algorithmTypeDetected?: string }>(
-        `/questions/${questionId}/testcases/generate`, data, config
+    generateOracle: (questionId: string, data: { oracleCode: string; language: string; inputs: string[]; defaultWeight?: number }, config?: RequestConfig) =>
+      post<{ createdTestCases: Array<TestCaseResponseDTO>; failedExecutions: Array<{ input: string; error: string }> }>(
+        `/questions/${questionId}/testcases/generate-oracle`, data, config
       ),
     importFromFile: async (questionId: string, formData: FormData) => {
       const url = `${API_BASE_URL}/questions/${questionId}/testcases/import`;

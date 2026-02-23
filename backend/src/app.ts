@@ -49,7 +49,15 @@ import { CreateQuestionUseCase, UpdateQuestionUseCase, DeleteQuestionUseCase, Ge
 import { ImportQuestionsFromCsvUseCase } from './use-cases/question/ImportQuestionsFromCsvUseCase';
 import { CreateSubmissionUseCase, GetSubmissionUseCase, GetAllSubmissionsUseCase, GetSubmissionWithResultsUseCase, ResubmitSubmissionUseCase, SearchSubmissionsUseCase } from './use-cases/submission';
 import { GetGradeUseCase, CalculateGradeUseCase, GetStudentGradesUseCase, GetListGradesUseCase, GetGradeByStudentAndListUseCase } from './use-cases/grade';
-import { CreateQuestionListUseCase, GetQuestionListUseCase, UpdateQuestionListUseCase, DeleteQuestionListUseCase, GetAllQuestionListsUseCase, UpdateListScoringUseCase, AddQuestionToListUseCase, RemoveQuestionFromListUseCase } from './use-cases/question-list';
+import {
+  CreateQuestionListUseCase, GetQuestionListUseCase, UpdateQuestionListUseCase,
+  DeleteQuestionListUseCase,
+  GetAllQuestionListsUseCase,
+  UpdateListScoringUseCase,
+  AddQuestionToListUseCase,
+  RemoveQuestionFromListUseCase,
+  GetQuestionListMetricsUseCase
+} from './use-cases/question-list';
 import { CreateInviteUseCase, GetAllInvitesUseCase, ValidateInviteUseCase, DeleteInviteUseCase, RevokeInviteUseCase } from './use-cases/invite';
 import {
   CreateClassUseCase,
@@ -66,7 +74,8 @@ import {
   GetTestCasesByQuestionUseCase,
   GetTestCaseByIdUseCase,
   UpdateTestCaseUseCase,
-  DeleteTestCaseUseCase
+  DeleteTestCaseUseCase,
+  GenerateTestCasesFromOracleUseCase
 } from './use-cases/testcase';
 import { BulkUpdateTestCasesUseCase } from './use-cases/testcase/BulkUpdateTestCasesUseCase';
 import { ImportTestCasesFromFileUseCase } from './use-cases/testcase/ImportTestCasesFromFileUseCase';
@@ -238,6 +247,7 @@ export function createApp(): Application {
   const updateListScoringUseCase = container.resolve(UpdateListScoringUseCase);
   const addQuestionToListUseCase = container.resolve(AddQuestionToListUseCase);
   const removeQuestionFromListUseCase = container.resolve(RemoveQuestionFromListUseCase);
+  const getQuestionListMetricsUseCase = container.resolve(GetQuestionListMetricsUseCase);
   const createInviteUseCase = container.resolve(CreateInviteUseCase);
   const getAllInvitesUseCase = container.resolve(GetAllInvitesUseCase);
   const validateInviteUseCase = container.resolve(ValidateInviteUseCase);
@@ -256,6 +266,7 @@ export function createApp(): Application {
   const getTestCaseByIdUseCase = container.resolve(GetTestCaseByIdUseCase);
   const updateTestCaseUseCase = container.resolve(UpdateTestCaseUseCase);
   const deleteTestCaseUseCase = container.resolve(DeleteTestCaseUseCase);
+  const generateTestCasesFromOracleUseCase = container.resolve(GenerateTestCasesFromOracleUseCase);
   const bulkUpdateTestCasesUseCase = container.resolve(BulkUpdateTestCasesUseCase);
   const importTestCasesFromFileUseCase = container.resolve(ImportTestCasesFromFileUseCase);
   const getAllAllowedIPsUseCase = container.resolve(GetAllAllowedIPsUseCase);
@@ -297,7 +308,8 @@ export function createApp(): Application {
     updateTestCaseUseCase,
     deleteTestCaseUseCase,
     bulkUpdateTestCasesUseCase,
-    importTestCasesFromFileUseCase
+    importTestCasesFromFileUseCase,
+    generateTestCasesFromOracleUseCase
   ));
 
   app.use('/api/questions', createQuestionController(
@@ -336,7 +348,8 @@ export function createApp(): Application {
     getAllQuestionListsUseCase,
     updateListScoringUseCase,
     addQuestionToListUseCase,
-    removeQuestionFromListUseCase
+    removeQuestionFromListUseCase,
+    getQuestionListMetricsUseCase
   ));
   app.use('/api/grades', createGradeController(
     getGradeUseCase,

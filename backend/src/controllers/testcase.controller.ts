@@ -6,7 +6,7 @@
  */
 import { Router, Response } from 'express';
 import multer from 'multer';
-import { CreateTestCaseDTO, UpdateTestCaseDTO } from '../dtos';
+import { CreateTestCaseDTO, UpdateTestCaseDTO, GenerateTestCasesOracleDTO } from '../dtos';
 import { BulkUpdateTestCasesDTO } from '../dtos/TestCaseDtos';
 import { validateBody, authenticate, requireTeacher, AuthRequest } from '../middlewares';
 import { successResponse } from '../utils/responses';
@@ -18,7 +18,8 @@ import {
   GetTestCasesByQuestionUseCase,
   GetTestCaseByIdUseCase,
   UpdateTestCaseUseCase,
-  DeleteTestCaseUseCase
+  DeleteTestCaseUseCase,
+  GenerateTestCasesFromOracleUseCase
 } from '../use-cases/testcase';
 import { BulkUpdateTestCasesUseCase } from '../use-cases/testcase/BulkUpdateTestCasesUseCase';
 import { ImportTestCasesFromFileUseCase } from '../use-cases/testcase/ImportTestCasesFromFileUseCase';
@@ -64,7 +65,8 @@ function createTestCaseController(
   updateTestCaseUseCase: UpdateTestCaseUseCase,
   deleteTestCaseUseCase: DeleteTestCaseUseCase,
   bulkUpdateTestCasesUseCase: BulkUpdateTestCasesUseCase,
-  importTestCasesFromFileUseCase: ImportTestCasesFromFileUseCase
+  importTestCasesFromFileUseCase: ImportTestCasesFromFileUseCase,
+  generateTestCasesFromOracleUseCase: GenerateTestCasesFromOracleUseCase
 ): Router {
   const router = Router();
 
@@ -129,6 +131,22 @@ function createTestCaseController(
       const testCase = await createTestCaseUseCase.execute(data);
 
       successResponse(res, testCase, 'Test case created successfully', 201);
+    })
+  );
+
+  /**
+   * POST /questions/:questionId/testcases/generate-oracle
+   * Generate test cases from oracle code
+   */
+  router.post(
+    '/questions/:questionId/testcases/generate-oracle',
+    authenticate,
+    requireTeacher,
+    validateBody(GenerateTestCasesOracleDTO),
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const data = req.body;
+      const result = await generateTestCasesFromOracleUseCase.execute(req.params.questionId, data);
+      successResponse(res, result, 'Test cases generated successfully', 201);
     })
   );
 

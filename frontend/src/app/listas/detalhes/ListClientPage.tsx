@@ -34,7 +34,8 @@ export default function ListClientPage() {
         isListStarted,
         isListEnded,
         hasQuestions,
-        reloadList
+        reloadList,
+        metrics
     } = useListPage(); // useListPage internally uses searchParams too or expects 'id' to be passed? 
     // Checking useListPage hook invalidation... 
     // It uses useParams or searchParams internally. 
@@ -456,50 +457,60 @@ export default function ListClientPage() {
                                                     </div>
                                                 )}
                                                 {(userRole === 'professor' || userRole === 'assistant') ? (
-                                                    <div className="flex gap-2 flex-wrap items-center">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                setEditingQuestion(question);
-                                                                setShowEditQuestionModal(true);
-                                                            }}
-                                                            className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all duration-200 rounded-xl"
-                                                        >
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                            </svg>
-                                                            Editar
-                                                        </Button>
-                                                        {!isListStarted() && (
+                                                    <div className="flex gap-4 items-center flex-wrap justify-end">
+                                                        {metrics && metrics[question.id] && (
+                                                            <div className="flex flex-col items-end mr-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                                                                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Submissões (Aceitas / Total)</span>
+                                                                <span className="text-sm font-bold text-slate-700">
+                                                                    <span className="text-green-600">{metrics[question.id].acceptedSubmissions}</span> / {metrics[question.id].totalSubmissions}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex gap-2 items-center">
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
                                                                 onClick={(e) => {
                                                                     e.preventDefault();
                                                                     e.stopPropagation();
-                                                                    handleRemoveQuestion(question.id);
+                                                                    setEditingQuestion(question);
+                                                                    setShowEditQuestionModal(true);
                                                                 }}
-                                                                disabled={removingQuestionId === question.id}
-                                                                className="border-red-300 text-red-700 hover:bg-red-50 font-semibold transition-all duration-200 rounded-xl disabled:opacity-50"
+                                                                className="border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all duration-200 rounded-xl"
                                                             >
-                                                                {removingQuestionId === question.id ? (
-                                                                    <>
-                                                                        <div className="w-4 h-4 mr-1 animate-spin rounded-full border-2 border-red-700 border-t-transparent"></div>
-                                                                        Removendo...
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                        </svg>
-                                                                        Remover
-                                                                    </>
-                                                                )}
+                                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                                </svg>
+                                                                Editar
                                                             </Button>
-                                                        )}
+                                                            {!isListStarted() && (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        handleRemoveQuestion(question.id);
+                                                                    }}
+                                                                    disabled={removingQuestionId === question.id}
+                                                                    className="border-red-300 text-red-700 hover:bg-red-50 font-semibold transition-all duration-200 rounded-xl disabled:opacity-50"
+                                                                >
+                                                                    {removingQuestionId === question.id ? (
+                                                                        <>
+                                                                            <div className="w-4 h-4 mr-1 animate-spin rounded-full border-2 border-red-700 border-t-transparent"></div>
+                                                                            Removendo...
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                            </svg>
+                                                                            Remover
+                                                                        </>
+                                                                    )}
+                                                                </Button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <Button

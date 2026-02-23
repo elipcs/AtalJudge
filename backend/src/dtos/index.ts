@@ -48,7 +48,8 @@ export {
 export {
   CreateTestCaseDTO,
   UpdateTestCaseDTO,
-  TestCaseResponseDTO
+  TestCaseResponseDTO,
+  GenerateTestCasesOracleDTO
 } from './TestCaseDtos';
 
 export {

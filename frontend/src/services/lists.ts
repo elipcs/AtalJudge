@@ -198,4 +198,14 @@ export const listsApi = {
       throw error;
     }
   },
+
+  async getMetrics(id: string): Promise<Record<string, { totalSubmissions: number; acceptedSubmissions: number }> | null> {
+    try {
+      const { data } = await API.lists.metrics(id);
+      return data;
+    } catch (error) {
+      logger.error('Failed to get lists metrics', { error });
+      return null;
+    }
+  },
 };

@@ -3,3 +3,4 @@ export * from './GetTestCasesByQuestionUseCase';
 export * from './GetTestCaseByIdUseCase';
 export * from './UpdateTestCaseUseCase';
 export * from './DeleteTestCaseUseCase';
+export * from './GenerateTestCasesFromOracleUseCase';

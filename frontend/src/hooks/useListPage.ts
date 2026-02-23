@@ -27,6 +27,7 @@ export function useListPage() {
 
   const [list, setList] = useState<QuestionList | null>(null);
   const [submissions, setSubmissions] = useState<LocalSubmission[]>([]);
+  const [metrics, setMetrics] = useState<Record<string, { totalSubmissions: number; acceptedSubmissions: number }> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { userRole, isLoading: isLoadingUserRole } = useUserRole();
@@ -66,6 +67,11 @@ export function useListPage() {
           }
         }
         await loadSubmissions(listData);
+      } else if (userRole === 'professor' || userRole === 'assistant') {
+        const listMetrics = await listsApi.getMetrics(questionListId);
+        if (listMetrics) {
+          setMetrics(listMetrics);
+        }
       }
 
     } catch (err) {
@@ -280,6 +286,7 @@ export function useListPage() {
   return {
     list,
     submissions,
+    metrics,
     selectedQuestion,
     currentQuestionIndex,
     code,
