@@ -15,6 +15,7 @@ interface TestCase {
   expectedOutput: string;
   weight: number;
   order?: number;
+  isHidden?: boolean;
 }
 
 interface TestCasesModalProps {
@@ -167,6 +168,7 @@ export default function TestCasesModal({
               input: String(tc.input || ''),
               expectedOutput: String(tc.expectedOutput || ''),
               weight: Number(tc.weight || 10),
+              isHidden: Boolean(tc.isHidden || false),
               order: index,
             }));
 
@@ -180,6 +182,7 @@ export default function TestCasesModal({
                 input: "",
                 expectedOutput: "",
                 weight: 10,
+                isHidden: false,
               },
             ]);
           }
@@ -190,6 +193,7 @@ export default function TestCasesModal({
               input: "",
               expectedOutput: "",
               weight: 10,
+              isHidden: false,
             },
           ]);
         }
@@ -207,6 +211,7 @@ export default function TestCasesModal({
               input: "",
               expectedOutput: "",
               weight: 10,
+              isHidden: false,
             },
           ]);
           hasLoadedRef.current = questionId; // Marcar como carregado mesmo com erro para evitar loop
@@ -239,6 +244,7 @@ export default function TestCasesModal({
       input: "",
       expectedOutput: "",
       weight: 10,
+      isHidden: false,
       order: testCases.length,
     };
     setTestCases([...testCases, newTestCase]);
@@ -301,6 +307,7 @@ export default function TestCasesModal({
             input: "",
             expectedOutput: "",
             weight: 10,
+            isHidden: false,
           },
         ]);
         setDeleteAllConfirm(false);
@@ -347,6 +354,7 @@ export default function TestCasesModal({
             input: tc.input || '',
             expectedOutput: tc.expectedOutput || '',
             weight: tc.weight || 10,
+            isHidden: tc.isHidden || false,
             order: index,
           }));
           setTestCases(mappedCases);
@@ -357,6 +365,7 @@ export default function TestCasesModal({
               input: "",
               expectedOutput: "",
               weight: 10,
+              isHidden: false,
             },
           ]);
         }
@@ -387,6 +396,7 @@ export default function TestCasesModal({
             input: tc.input || '',
             expectedOutput: tc.expectedOutput || '',
             weight: tc.weight || 10,
+            isHidden: tc.isHidden || false,
             order: index,
           }));
           setTestCases(mappedCases);
@@ -397,6 +407,7 @@ export default function TestCasesModal({
               input: "",
               expectedOutput: "",
               weight: 10,
+              isHidden: false,
             },
           ]);
         }
@@ -454,6 +465,7 @@ export default function TestCasesModal({
           input: tc.input,
           expectedOutput: tc.expectedOutput,
           weight: tc.weight,
+          isHidden: tc.isHidden || false,
           order: i,
         });
         createdIds.push(created.id);
@@ -465,6 +477,7 @@ export default function TestCasesModal({
           input: tc.input,
           expectedOutput: tc.expectedOutput,
           weight: tc.weight,
+          isHidden: tc.isHidden || false,
           order: newCases.length + i,
         });
       }
@@ -484,6 +497,7 @@ export default function TestCasesModal({
             input: tc.input || '',
             expectedOutput: tc.expectedOutput || '',
             weight: tc.weight || 10,
+            isHidden: tc.isHidden || false,
             order: index,
           }));
           setTestCases(mappedCases);
@@ -516,6 +530,7 @@ export default function TestCasesModal({
           input: tc.input || '',
           expectedOutput: tc.expectedOutput || '',
           weight: tc.weight || 10,
+          isHidden: tc.isHidden || false,
           order: index,
         }));
         setTestCases(mappedCases);
@@ -717,6 +732,20 @@ export default function TestCasesModal({
                               onChange={(e) => updateTestCase(testCase.id, "weight", parseInt(e.target.value) || 0)}
                               className="w-full h-10 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900"
                             />
+                          </div>
+                          <div className="flex flex-col justify-end pb-2">
+                            <label className="flex items-center gap-2 cursor-pointer mt-[22px]">
+                              <input
+                                type="checkbox"
+                                checked={testCase.isHidden || false}
+                                onChange={(e) => updateTestCase(testCase.id, "isHidden", e.target.checked)}
+                                className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+                              />
+                              <span className="text-sm font-medium text-slate-700">Oculto</span>
+                            </label>
+                            <p className="text-xs text-slate-400 mt-1.5 opacity-80 pl-6 leading-tight max-w-[200px]">
+                              Esconde o caso de teste do aluno.
+                            </p>
                           </div>
                         </div>
                       ))}

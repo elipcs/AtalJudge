@@ -20,7 +20,7 @@ export class GenerateTestCasesFromOracleUseCase {
     ) { }
 
     async execute(questionId: string, dto: GenerateTestCasesOracleDTO): Promise<GenerateOracleResult> {
-        const { oracleCode, language, inputs, defaultWeight = 10 } = dto;
+        const { oracleCode, language, inputs, defaultWeight = 10, defaultIsHidden = false } = dto as any;
 
         if (!inputs || inputs.length === 0) {
             return { createdTestCases: [], failedExecutions: [] };
@@ -64,7 +64,8 @@ export class GenerateTestCasesFromOracleUseCase {
                     questionId,
                     input,
                     expectedOutput: processed.output || '',
-                    weight: defaultWeight
+                    weight: defaultWeight,
+                    isHidden: defaultIsHidden
                 });
 
                 createdTestCases.push(
@@ -74,6 +75,7 @@ export class GenerateTestCasesFromOracleUseCase {
                         input: created.input,
                         expectedOutput: created.expectedOutput,
                         weight: created.weight,
+                        isHidden: created.isHidden,
                         createdAt: created.createdAt
                     })
                 );

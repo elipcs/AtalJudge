@@ -70,6 +70,9 @@ export class TestCaseResultDTO {
   passed!: boolean;
   executionTimeMs?: number;
   memoryUsedKb?: number;
+  isHidden!: boolean;
+  input?: string;
+  expectedOutput?: string;
   actualOutput?: string;
   errorMessage?: string;
 

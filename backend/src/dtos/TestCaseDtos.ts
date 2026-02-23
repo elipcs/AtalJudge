@@ -40,6 +40,9 @@ export class CreateTestCaseDTO {
   @IsInt()
   @Min(0)
   weight?: number;
+
+  @IsOptional()
+  isHidden?: boolean;
 }
 
 /**
@@ -58,6 +61,9 @@ export class UpdateTestCaseDTO {
   @IsInt()
   @Min(0)
   weight?: number;
+
+  @IsOptional()
+  isHidden?: boolean;
 }
 
 /**
@@ -77,6 +83,9 @@ export class TestCaseDTO {
   @IsInt()
   @Min(0)
   weight!: number;
+
+  @IsOptional()
+  isHidden?: boolean;
 }
 
 /**
@@ -96,6 +105,7 @@ export class TestCaseResponseDTO {
   input!: string;
   expectedOutput!: string;
   weight!: number;
+  isHidden!: boolean;
   createdAt!: Date;
 
   constructor(partial: Partial<TestCaseResponseDTO>) {

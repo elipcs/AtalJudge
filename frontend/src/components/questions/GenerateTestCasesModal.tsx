@@ -22,6 +22,7 @@ export default function GenerateTestCasesModal({
   const [oracleCode, setOracleCode] = useState("");
   const [inputs, setInputs] = useState<string[]>([""]);
   const [defaultWeight, setDefaultWeight] = useState<number>(10);
+  const [defaultIsHidden, setDefaultIsHidden] = useState(false);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +73,7 @@ export default function GenerateTestCasesModal({
         language,
         inputs: validInputs,
         defaultWeight,
+        defaultIsHidden,
       });
 
       if (result.createdTestCases.length > 0) {
@@ -175,6 +177,18 @@ export default function GenerateTestCasesModal({
                       placeholder="10"
                       disabled={isGenerating}
                     />
+                  </div>
+                  <div className="w-32 flex flex-col justify-end pb-1.5">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={defaultIsHidden}
+                        onChange={(e) => setDefaultIsHidden(e.target.checked)}
+                        disabled={isGenerating}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                      />
+                      <span>Ocultos?</span>
+                    </label>
                   </div>
                 </div>
 

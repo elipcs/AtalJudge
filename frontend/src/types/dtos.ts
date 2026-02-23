@@ -80,6 +80,7 @@ export interface TestCaseResponseDTO {
   input: string;
   expectedOutput: string;
   weight: number;
+  isHidden?: boolean;
   createdAt: string | Date;
 }
 
@@ -115,6 +116,7 @@ export interface TestCaseResultDTO {
   passed: boolean;
   executionTimeMs?: number;
   memoryUsedKb?: number;
+  isHidden?: boolean;
   input?: string;
   expectedOutput?: string;
   actualOutput?: string;
@@ -128,8 +130,7 @@ export interface HiddenTestsSummaryDTO {
 }
 
 export interface SubmissionDetailDTO extends SubmissionResponseDTO {
-  sampleTestResults: TestCaseResultDTO[];
-  hiddenTestsSummary: HiddenTestsSummaryDTO;
+  testResults: TestCaseResultDTO[];
 }
 
 export interface PaginationMetadata {

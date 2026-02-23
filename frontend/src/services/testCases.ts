@@ -7,6 +7,7 @@ export interface CreateTestCaseData {
   expectedOutput: string;
   weight: number;
   order?: number;
+  isHidden?: boolean;
 }
 
 export interface UpdateTestCaseData {
@@ -14,6 +15,7 @@ export interface UpdateTestCaseData {
   expectedOutput?: string;
   weight?: number;
   order?: number;
+  isHidden?: boolean;
 }
 
 export interface ReorderTestCasesData {
@@ -90,6 +92,7 @@ export interface GenerateTestCasesOracleRequest {
   language: 'python' | 'java';
   inputs: string[];
   defaultWeight?: number;
+  defaultIsHidden?: boolean;
 }
 
 export interface GeneratedOracleResult {

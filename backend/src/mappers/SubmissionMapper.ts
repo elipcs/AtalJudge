@@ -27,7 +27,7 @@ export class SubmissionMapper {
    */
   static toDTO(submission: Submission): SubmissionResponseDTO {
     const questionList = submission.question?.questionLists?.[0];
-    
+
     return new SubmissionResponseDTO({
       id: submission.id,
       userId: submission.userId,
@@ -64,16 +64,23 @@ export class SubmissionMapper {
    * Converte Submission para SubmissionDetailDTO (inclui resultados dos test cases)
    */
   static toDetailDTO(submission: Submission): SubmissionDetailDTO {
-    const testResults: TestCaseResultDTO[] = submission.results 
-      ? submission.results.map(result => new TestCaseResultDTO({
+    const testResults: TestCaseResultDTO[] = submission.results
+      ? submission.results.map(result => {
+        const isHidden = result.testCase?.isHidden || false;
+
+        return new TestCaseResultDTO({
           testCaseId: result.testCaseId,
           verdict: result.verdict,
           passed: result.passed,
           executionTimeMs: result.executionTimeMs,
           memoryUsedKb: result.memoryUsedKb,
-          actualOutput: result.output,
+          isHidden,
+          input: isHidden ? undefined : result.testCase?.input,
+          expectedOutput: isHidden ? undefined : result.testCase?.expectedOutput,
+          actualOutput: isHidden ? undefined : result.output,
           errorMessage: result.errorMessage
-        }))
+        });
+      })
       : [];
 
     const questionList = submission.question?.questionLists?.[0];

@@ -12,7 +12,7 @@ export interface Judge0Submission {
   language: string;
   code: string;
   status: SubmissionStatus;
-  totalScore?: number;      
+  totalScore?: number;
   createdAt: string;
   updatedAt: string;
   judge0BatchToken?: string;
@@ -24,6 +24,9 @@ export interface TestResult {
   passed: boolean;
   executionTimeMs?: number;
   memoryUsedKb?: number;
+  isHidden?: boolean;
+  input?: string;
+  expectedOutput?: string;
   actualOutput?: string;
   errorMessage?: string | null;
 }

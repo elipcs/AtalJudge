@@ -29,7 +29,7 @@ export default function SubmissionStatusModal({
   code = "",
   questionName: initialQuestionName = "",
   userName: initialUserName = "",
-  questionListTitle: initialquestionListTitle= "",
+  questionListTitle: initialquestionListTitle = "",
 }: SubmissionStatusModalProps) {
   const [status, setStatus] = useState(initialStatus.toLowerCase());
   const [language, setLanguage] = useState(initialLanguage);
@@ -45,7 +45,7 @@ export default function SubmissionStatusModal({
     if (!isOpen || !submissionId) return;
 
     const currentStatus = status.toLowerCase();
-    
+
     if (currentStatus === "completed" || currentStatus === "failed") {
       if (currentStatus === "completed" && !results) {
         submissionsApi.getSubmissionResults(submissionId)
@@ -60,7 +60,7 @@ export default function SubmissionStatusModal({
       const id = setTimeout(() => setIsPolling(false), 0);
       return () => clearTimeout(id);
     }
-    
+
     if (currentStatus === "pending" || currentStatus === "running") {
       setTimeout(() => setIsPolling(true), 0);
     }
@@ -77,7 +77,7 @@ export default function SubmissionStatusModal({
         setVerdict(submission.verdict);
         setQuestionName(submission.questionName || "");
         setUserName(submission.userName || "");
-        setquestionListTitle(submission.questionListTitle|| submission.questionListTitle|| "");
+        setquestionListTitle(submission.questionListTitle || submission.questionListTitle || "");
 
         if (newStatus === "completed") {
           try {
@@ -95,7 +95,7 @@ export default function SubmissionStatusModal({
           return () => clearTimeout(id);
         }
       } catch (_error) {
-        
+
       }
     }, 2000);
 
@@ -109,7 +109,7 @@ export default function SubmissionStatusModal({
 
   const getVerdictDotColor = (verdict?: string): string => {
     if (!verdict) return "bg-green-500";
-    
+
     switch (verdict) {
       case "Accepted":
         return "bg-green-500";
@@ -167,7 +167,7 @@ export default function SubmissionStatusModal({
           dotColor: "bg-blue-500 animate-pulse",
           statusText: "Executando",
         };
-      default: 
+      default:
         return {
           icon: (
             <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +214,7 @@ export default function SubmissionStatusModal({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200 overflow-y-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isPolling) {
@@ -329,11 +329,10 @@ export default function SubmissionStatusModal({
             {results && status === "completed" && (
               <div className="space-y-3 animate-in slide-in-from-bottom-2 duration-300">
                 <div
-                  className={`p-4 rounded-lg border-2 shadow-sm ${
-                    results.passedTests === results.totalTests
+                  className={`p-4 rounded-lg border-2 shadow-sm ${results.passedTests === results.totalTests
                       ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-300"
                       : "bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-base font-bold text-slate-800">Resultado da Avaliação</h3>
@@ -371,7 +370,7 @@ export default function SubmissionStatusModal({
 
                 <div className="space-y-2">
                   <h4 className="text-xs font-semibold text-slate-700">Detalhes dos Casos de Teste:</h4>
-                
+
                   <div className="flex gap-2 mb-3">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg shadow-sm">
                       <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -395,11 +394,10 @@ export default function SubmissionStatusModal({
                     {(results.testResults || []).map((result, index) => (
                       <div
                         key={result.testCaseId || index}
-                        className={`p-3 rounded-lg border shadow-sm ${
-                          result.passed 
-                            ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200" 
+                        className={`p-3 rounded-lg border shadow-sm ${result.passed
+                            ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
                             : "bg-gradient-to-br from-red-50 to-orange-50 border-red-200"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-xs font-bold text-slate-900">
@@ -407,11 +405,10 @@ export default function SubmissionStatusModal({
                           </span>
                           <div className="flex items-center gap-1.5">
                             <span
-                              className={`text-xs font-bold px-2 py-0.5 rounded ${
-                                result.passed 
-                                  ? "bg-green-200 text-green-800 border border-green-300" 
+                              className={`text-xs font-bold px-2 py-0.5 rounded ${result.passed
+                                  ? "bg-green-200 text-green-800 border border-green-300"
                                   : "bg-red-200 text-red-800 border border-red-300"
-                              }`}
+                                }`}
                             >
                               {result.passed ? "✓ Passou" : "✗ Falhou"}
                             </span>
@@ -428,17 +425,42 @@ export default function SubmissionStatusModal({
                           )}
                         </div>
 
-                        {result.actualOutput && (
-                          <div className="mt-2">
-                            <p className="text-xs font-semibold text-slate-700 mb-1">Sua Saída:</p>
-                            <pre className={`text-xs p-2 rounded font-mono overflow-x-auto max-h-20 border ${
-                              result.passed 
-                                ? "bg-green-100 border-green-200" 
-                                : "bg-red-100 border-red-200"
-                            }`}>
-                              {result.actualOutput}
-                            </pre>
+                        {result.isHidden ? (
+                          <div className="mt-2 text-xs italic text-slate-500 bg-slate-100 p-2 rounded border border-slate-200 text-center">
+                            Detalhes de entrada e saída deste caso de teste estão ocultos.
                           </div>
+                        ) : (
+                          <>
+                            {result.input && (
+                              <div className="mt-2">
+                                <p className="text-xs font-semibold text-slate-700 mb-1">Entrada:</p>
+                                <pre className="text-xs bg-slate-100 border border-slate-200 p-2 rounded font-mono overflow-x-auto max-h-20">
+                                  {result.input}
+                                </pre>
+                              </div>
+                            )}
+
+                            {result.expectedOutput && (
+                              <div className="mt-2">
+                                <p className="text-xs font-semibold text-slate-700 mb-1">Saída Esperada:</p>
+                                <pre className="text-xs bg-slate-100 border border-slate-200 p-2 rounded font-mono overflow-x-auto max-h-20">
+                                  {result.expectedOutput}
+                                </pre>
+                              </div>
+                            )}
+
+                            {result.actualOutput && (
+                              <div className="mt-2">
+                                <p className="text-xs font-semibold text-slate-700 mb-1">Sua Saída:</p>
+                                <pre className={`text-xs p-2 rounded font-mono overflow-x-auto max-h-20 border ${result.passed
+                                    ? "bg-green-100 border-green-200"
+                                    : "bg-red-100 border-red-200"
+                                  }`}>
+                                  {result.actualOutput}
+                                </pre>
+                              </div>
+                            )}
+                          </>
                         )}
 
                         {result.errorMessage && (
@@ -452,9 +474,9 @@ export default function SubmissionStatusModal({
                       </div>
                     ))}
                   </div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
           </div>
         </div>
 

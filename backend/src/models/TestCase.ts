@@ -18,6 +18,9 @@ export class TestCase {
   @Column({ type: 'int', default: 0 })
   weight!: number;
 
+  @Column({ name: 'is_hidden', type: 'boolean', default: false })
+  isHidden!: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt!: Date;
 
