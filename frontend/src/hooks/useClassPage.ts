@@ -3,11 +3,12 @@ import { useUserRole } from './useUserRole';
 import { useCurrentUser } from './useHomeData';
 import { useUserClasses, useCreateClass, useEditClass, useDeleteClass, useClassStudents } from './useClassesData';
 import { Class, Student } from '@/types';
+import { classesApi } from '@/services/classes';
 
 export function useClassPage() {
   const { userRole, isLoading: userRoleLoading } = useUserRole();
   const { data: currentUser } = useCurrentUser();
-  
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [classDetails, setClassDetails] = useState<{ cls: Class; students: Student[] } | null>(null);
@@ -15,16 +16,18 @@ export function useClassPage() {
   const [createClassModal, setCreateClassModal] = useState(false);
   const [editClassModal, setEditClassModal] = useState(false);
   const [deleteClassModal, setDeleteClassModal] = useState(false);
+  const [transferClassModal, setTransferClassModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const { classes, loading: classesLoading, error: classesError, refetch: refetchClasses } = useUserClasses(
-    currentUser?.id || '', 
+    currentUser?.id || '',
     userRole || 'student',
     (currentUser as any)?.classId
   );
   const { createClass, loading: createLoading, error: createError } = useCreateClass();
   const { editClass, loading: editLoading, error: _editError } = useEditClass();
   const { deleteClass, loading: deleteLoading, error: _deleteError } = useDeleteClass();
+  const [transferLoading, setTransferLoading] = useState(false);
   const { students, loading: studentsLoading } = useClassStudents(selectedClassId || '');
 
   useEffect(() => {
@@ -84,7 +87,7 @@ export function useClassPage() {
         professorId: currentUser?.id ?? '',
         professorName: currentUser?.name ?? ''
       });
-      
+
       if (newClass) {
         setSuccess('Turma criada com sucesso!');
         setCreateClassModal(false);
@@ -121,7 +124,7 @@ export function useClassPage() {
     try {
       setError("");
       const result = await editClass(id, data);
-      
+
       if (result) {
         setSuccess("Turma editada com sucesso!");
         setEditClassModal(false);
@@ -145,7 +148,7 @@ export function useClassPage() {
     try {
       setError("");
       const result = await deleteClass(id);
-      
+
       if (result) {
         setSuccess("Turma excluída com sucesso!");
         setDeleteClassModal(false);
@@ -160,12 +163,40 @@ export function useClassPage() {
     }
   };
 
+  const handleTransferClass = async (classId: string, newProfessorId: string): Promise<boolean> => {
+    if (userRole !== 'professor') {
+      setError("Apenas professores podem transferir turmas");
+      return false;
+    }
+
+    setTransferLoading(true);
+    try {
+      setError("");
+      await classesApi.transfer(classId, newProfessorId);
+      setSuccess("Turma transferida com sucesso!");
+      setTransferClassModal(false);
+      setSelectedClass(null);
+      refetchClasses();
+      if (showDetails) {
+        setShowDetails(false);
+        setClassDetails(null);
+        setSelectedClassId(null);
+      }
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao transferir turma");
+      return false;
+    } finally {
+      setTransferLoading(false);
+    }
+  };
+
   const handleOpenEditModal = (cls: Class) => {
     if (userRole !== 'professor') {
       setError("Apenas professores podem editar turmas");
       return;
     }
-    
+
     setSelectedClass(cls);
     setEditClassModal(true);
     setError("");
@@ -176,9 +207,20 @@ export function useClassPage() {
       setError("Apenas professores podem excluir turmas");
       return;
     }
-    
+
     setSelectedClass(cls);
     setDeleteClassModal(true);
+    setError("");
+  };
+
+  const handleOpenTransferModal = (cls: Class) => {
+    if (userRole !== 'professor') {
+      setError("Apenas professores podem transferir turmas");
+      return;
+    }
+
+    setSelectedClass(cls);
+    setTransferClassModal(true);
     setError("");
   };
 
@@ -194,6 +236,7 @@ export function useClassPage() {
     createClassModal,
     editClassModal,
     deleteClassModal,
+    transferClassModal,
     selectedClass,
     selectedClassId,
     isLoading,
@@ -202,17 +245,21 @@ export function useClassPage() {
     createLoading,
     editLoading,
     deleteLoading,
+    transferLoading,
     classesError,
     handleCreateClass,
     handleViewClassDetails,
     handleBackToList,
     handleEditClass,
     handleDeleteClass,
+    handleTransferClass,
     handleOpenEditModal,
     handleOpenDeleteModal,
+    handleOpenTransferModal,
     setCreateClassModal,
     setEditClassModal,
     setDeleteClassModal,
+    setTransferClassModal,
     setError,
     setSuccess
   };

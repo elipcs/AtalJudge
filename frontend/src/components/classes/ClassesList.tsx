@@ -13,16 +13,18 @@ interface ClassesListProps {
   onViewDetails: (cls: Class) => void;
   onEditClass?: (cls: Class) => void;
   onDeleteClass?: (cls: Class) => void;
+  onTransferClass?: (cls: Class) => void;
   loading?: boolean;
 }
 
-export default function ClassesList({ 
-  classes, 
-  userRole, 
-  onViewDetails, 
+export default function ClassesList({
+  classes,
+  userRole,
+  onViewDetails,
   onEditClass,
   onDeleteClass,
-  loading = false 
+  onTransferClass,
+  loading = false
 }: ClassesListProps) {
   if (loading) {
     return <InlineLoading message="Carregando turmas..." />;
@@ -41,7 +43,7 @@ export default function ClassesList({
             {userRole === 'student' ? 'Nenhuma turma encontrada' : 'Nenhuma turma criada'}
           </h3>
           <p className="text-slate-600 text-lg leading-relaxed max-w-lg mx-auto">
-            {userRole === 'student' 
+            {userRole === 'student'
               ? 'Você ainda não está matriculado em nenhuma turma.'
               : 'Comece criando sua primeira turma para organizar seus alunos.'
             }
@@ -50,8 +52,8 @@ export default function ClassesList({
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {classes.map((cls) => (
-            <Card key={cls.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer" 
-                  onClick={() => onViewDetails(cls)}>
+            <Card key={cls.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => onViewDetails(cls)}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">{cls.name}</h3>
@@ -70,7 +72,7 @@ export default function ClassesList({
                   <span className="text-gray-600">Alunos:</span>
                   <span className="font-medium text-gray-900">{cls.studentCount || 0}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Criada em:</span>
                   <span className="text-gray-900">
@@ -81,9 +83,9 @@ export default function ClassesList({
 
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -92,13 +94,13 @@ export default function ClassesList({
                   >
                     Ver Detalhes
                   </Button>
-                  
+
                   {userRole === 'professor' && (
                     <>
                       {onEditClass && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -111,20 +113,20 @@ export default function ClassesList({
                           </svg>
                         </Button>
                       )}
-                      
-                      {onDeleteClass && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+
+                      {onTransferClass && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onDeleteClass(cls);
+                            onTransferClass(cls);
                           }}
-                          title="Excluir turma"
+                          title="Transferir turma"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                           </svg>
                         </Button>
                       )}

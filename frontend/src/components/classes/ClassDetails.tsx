@@ -18,32 +18,35 @@ interface ClassDetailsProps {
   onBack: () => void;
   onEditClass?: (cls: Class) => void;
   onDeleteClass?: (cls: Class) => void;
+  onTransferClass?: (cls: Class) => void;
   loading?: boolean;
 }
 
-export default function ClassDetails({ 
-  classDetails, 
+export default function ClassDetails({
+  classDetails,
   userRole,
   currentUserId,
   onBack: _onBack,
-  onEditClass: _onEditClass,
-  onDeleteClass: _onDeleteClass,
-  loading = false 
+  onEditClass,
+  onDeleteClass,
+  onTransferClass,
+  loading = false
 }: ClassDetailsProps) {
   const { cls, students } = classDetails;
-  
-  const currentStudent = userRole === 'student' && currentUserId 
+
+  const currentStudent = userRole === 'student' && currentUserId
     ? students.find(s => s.id === currentUserId)
     : null;
-  
+
   const { lists: allLists, loading: listsLoading } = useListsData();
   const questionLists = allLists.filter((list: QuestionList) =>
     list.classIds && list.classIds.includes(cls.id)
   );
 
+  const listsForGrade = questionLists.filter((list: QuestionList) => list.countTowardScore !== false);
+
   const exportToCSV = () => {
-    const listsForGrade = questionLists.filter((list: QuestionList) => list.countTowardScore !== false);
-    
+
     const headers = ['Nome', 'Email', 'Matrícula', 'Média Geral'];
     listsForGrade.forEach(list => {
       headers.push(list.title);
@@ -59,13 +62,13 @@ export default function ClassDetails({
           `"${student.studentRegistration}"`,
           calculateAverageGrade(student.grades).toFixed(1)
         ];
-        
+
         listsForGrade.forEach(list => {
           const gradeObj = student.grades?.find(g => g.questionListId === list.id);
           const grade = gradeObj ? parseFloat(String(gradeObj.score)) : 0;
           row.push(grade.toFixed(1));
         });
-        
+
         row.push(`"${new Date(student.createdAt).toLocaleDateString('pt-BR')}"`);
         return row.join(',');
       })
@@ -88,12 +91,12 @@ export default function ClassDetails({
 
   const calculateAverageGrade = (grades: { id: string; questionListId: string; score: string | number; createdAt: string; updatedAt: string }[] = []) => {
     if (grades.length === 0) return 0;
-    
+
     const gradesForScore = grades.filter(grade => {
       const list = questionLists.find((l: QuestionList) => l.id === grade.questionListId);
       return list && list.countTowardScore !== false;
     });
-    
+
     if (gradesForScore.length === 0) return 0;
     const sum = gradesForScore.reduce((acc, grade) => acc + parseFloat(String(grade.score)), 0);
     return sum / gradesForScore.length;
@@ -116,23 +119,26 @@ export default function ClassDetails({
                   <p className="text-slate-500 text-xs">Desempenho nas listas</p>
                 </div>
               </div>
-              
+
               <div className="bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
                 <p className="text-slate-700 text-xs font-semibold">
-                  {currentStudent.grades?.filter(g => parseFloat(String(g.score)) > 0).length || 0}/{questionLists.length}
+                  {currentStudent.grades?.filter(g => {
+                    const list = listsForGrade.find(l => l.id === g.questionListId);
+                    return list && parseFloat(String(g.score)) > 0;
+                  }).length || 0}/{listsForGrade.length}
                 </p>
               </div>
             </div>
 
-            {questionLists.length > 0 ? (
+            {listsForGrade.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
-                {questionLists.map((list) => {
+                {listsForGrade.map((list) => {
                   const gradeObj = currentStudent.grades?.find(g => g.questionListId === list.id);
                   const gradeValue = gradeObj ? parseFloat(String(gradeObj.score)) : 0;
                   const hasGrade = gradeValue > 0;
-                  
+
                   return (
-                    <div 
+                    <div
                       key={list.id}
                       className="bg-white rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                     >
@@ -154,14 +160,13 @@ export default function ClassDetails({
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex items-end justify-between">
-                        <p className={`text-2xl font-bold ${
-                          gradeValue >= 7 ? 'text-green-600' :
+                        <p className={`text-2xl font-bold ${gradeValue >= 7 ? 'text-green-600' :
                           gradeValue >= 5 ? 'text-yellow-600' :
-                          gradeValue > 0 ? 'text-red-600' :
-                          'text-slate-300'
-                        }`}>
+                            gradeValue > 0 ? 'text-red-600' :
+                              'text-slate-300'
+                          }`}>
                           {hasGrade ? gradeValue.toFixed(1) : '-'}
                         </p>
                       </div>
@@ -177,7 +182,7 @@ export default function ClassDetails({
                 <p className="text-slate-700 text-sm font-semibold">Nenhuma lista disponível</p>
               </div>
             )}
-            
+
             <div className="bg-white rounded-xl p-4 shadow-xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -191,13 +196,12 @@ export default function ClassDetails({
                     <p className="text-[10px] text-slate-400">Todas as listas</p>
                   </div>
                 </div>
-                
+
                 <div className="text-right">
-                  <p className={`text-3xl font-bold ${
-                    calculateAverageGrade(currentStudent.grades) >= 7 ? 'text-green-600' :
+                  <p className={`text-3xl font-bold ${calculateAverageGrade(currentStudent.grades) >= 7 ? 'text-green-600' :
                     calculateAverageGrade(currentStudent.grades) >= 5 ? 'text-yellow-600' :
-                    'text-red-600'
-                  }`}>
+                      'text-red-600'
+                    }`}>
                     {calculateAverageGrade(currentStudent.grades).toFixed(1)}
                   </p>
                 </div>
@@ -212,17 +216,62 @@ export default function ClassDetails({
           <h2 className="text-2xl font-bold text-slate-900">
             Alunos da Turma ({students.length})
           </h2>
-          {(userRole === 'professor' || userRole === 'assistant') && students.length > 0 && (
-            <Button 
-              onClick={exportToCSV}
-              className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200 shadow-sm hover:shadow-md font-semibold transition-all duration-200 transform hover:scale-[1.02] rounded-xl"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Exportar
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {(userRole === 'professor' || userRole === 'assistant') && (
+              <>
+                {onEditClass && (
+                  <Button
+                    variant="outline"
+                    onClick={() => onEditClass(cls)}
+                    className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold rounded-xl"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Editar
+                  </Button>
+                )}
+
+                {onTransferClass && userRole === 'professor' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => onTransferClass(cls)}
+                    className="flex items-center gap-2 border-orange-200 text-orange-700 hover:bg-orange-50 font-semibold rounded-xl"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    Transferir
+                  </Button>
+                )}
+
+                {onDeleteClass && userRole === 'professor' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => onDeleteClass(cls)}
+                    className="flex items-center gap-2 border-red-200 text-red-700 hover:bg-red-50 font-semibold rounded-xl"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Excluir
+                  </Button>
+                )}
+              </>
+            )}
+
+            {(userRole === 'professor' || userRole === 'assistant') && students.length > 0 && (
+              <Button
+                onClick={exportToCSV}
+                className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200 shadow-sm hover:shadow-md font-semibold transition-all duration-200 rounded-xl"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Exportar
+              </Button>
+            )}
+          </div>
         </div>
 
         {students.length === 0 ? (
@@ -245,7 +294,7 @@ export default function ClassDetails({
                   <th className="text-left py-4 px-6 font-semibold text-slate-700">Matrícula</th>
                   {userRole !== 'student' && (
                     <>
-                      {questionLists.map((list) => (
+                      {listsForGrade.map((list) => (
                         <th key={list.id} className="text-left py-4 px-6 font-semibold text-slate-700">
                           <div className="max-w-24">
                             <div className="text-xs text-slate-500 truncate" title={list.title}>
@@ -278,28 +327,26 @@ export default function ClassDetails({
                       <td className="py-4 px-6 text-slate-900">{student.studentRegistration || '-'}</td>
                       {userRole !== 'student' && (
                         <>
-                          {questionLists.map((list) => {
+                          {listsForGrade.map((list) => {
                             const gradeObj = student.grades?.find(g => g.questionListId === list.id);
                             const gradeValue = gradeObj ? parseFloat(String(gradeObj.score)) : 0;
                             return (
                               <td key={list.id} className="py-4 px-6">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium ${
-                                  gradeValue >= 7 ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200' :
+                                <span className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium ${gradeValue >= 7 ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200' :
                                   gradeValue >= 5 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-700 border border-yellow-200' :
-                                  gradeValue > 0 ? 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border border-red-200' :
-                                  'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-500 border border-slate-200'
-                                }`}>
+                                    gradeValue > 0 ? 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border border-red-200' :
+                                      'bg-gradient-to-r from-slate-50 to-slate-100 text-slate-500 border border-slate-200'
+                                  }`}>
                                   {gradeValue > 0 ? gradeValue.toFixed(1) : '-'}
                                 </span>
                               </td>
                             );
                           })}
                           <td className="py-4 px-6">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium ${
-                              average >= 7 ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200' :
+                            <span className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium ${average >= 7 ? 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200' :
                               average >= 5 ? 'bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-700 border border-yellow-200' :
-                              'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border border-red-200'
-                            }`}>
+                                'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border border-red-200'
+                              }`}>
                               {average.toFixed(1)}
                             </span>
                           </td>
@@ -314,7 +361,7 @@ export default function ClassDetails({
         )}
       </Card>
 
-      {}
+      { }
       <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
         <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-slate-600">
           <div className="flex items-center gap-6">
@@ -330,7 +377,7 @@ export default function ClassDetails({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="font-medium">
-                  Média geral: {students.length > 0 
+                  Média geral: {students.length > 0
                     ? (students.reduce((sum, student) => sum + calculateAverageGrade(student.grades), 0) / students.length).toFixed(1)
                     : '0.0'
                   }

@@ -6,31 +6,31 @@ import { Class, Professor } from '@/types';
 function mapClassDTO(dto: ClassResponseDTO): Class {
   const professor: Professor | null = dto.professor
     ? {
-        id: dto.professor.id,
-        name: dto.professor.name,
-        email: dto.professor.email,
-        role: dto.professor.role,
-      }
+      id: dto.professor.id,
+      name: dto.professor.name,
+      email: dto.professor.email,
+      role: dto.professor.role,
+    }
     : dto.professorName
-    ? {
+      ? {
         id: dto.professorId,
         name: dto.professorName,
         email: '',
         role: 'professor',
       }
-    : null;
+      : null;
 
   const students = Array.isArray(dto.students)
     ? dto.students.map((s) => ({
-        id: s.id,
-        name: s.name,
-        email: s.email,
-        studentRegistration: s.studentRegistration || '',
-        role: s.role,
-        classId: dto.id,
-        grades: [],
-        createdAt: typeof s.createdAt === 'string' ? s.createdAt : new Date(s.createdAt).toISOString(),
-      }))
+      id: s.id,
+      name: s.name,
+      email: s.email,
+      studentRegistration: s.studentRegistration || '',
+      role: s.role,
+      classId: dto.id,
+      grades: [],
+      createdAt: typeof s.createdAt === 'string' ? s.createdAt : new Date(s.createdAt).toISOString(),
+    }))
     : [];
 
   return {
@@ -50,13 +50,13 @@ export const classesApi = {
       const params = includeRelations ? { include: 'relations' as string } : undefined;
       const response = await API.classes.list(params);
       const { data } = response;
-      
+
       if (!data) {
         return [];
       }
-      
+
       const array = Array.isArray(data) ? data : [];
-      
+
       return array.map(mapClassDTO);
     } catch (error) {
       throw error;
@@ -68,40 +68,40 @@ export const classesApi = {
 
       const { data } = await API.classes.get(id, true);
       if (!data) return null;
-      
+
       const studentsResponse = await API.classes.students(id);
-      
+
       const studentsWithGrades = Array.isArray(studentsResponse.data.students)
         ? studentsResponse.data.students.map((s: any) => {
-            const mapped = {
-              id: s.id,
-              name: s.name,
-              email: s.email,
-              studentRegistration: s.studentRegistration || '',
-              role: s.role,
-              classId: id,
-              grades: s.grades || [],
-              createdAt: typeof s.createdAt === 'string' ? s.createdAt : new Date(s.createdAt).toISOString(),
-            };
-            return mapped;
-          })
+          const mapped = {
+            id: s.id,
+            name: s.name,
+            email: s.email,
+            studentRegistration: s.studentRegistration || '',
+            role: s.role,
+            classId: id,
+            grades: s.grades || [],
+            createdAt: typeof s.createdAt === 'string' ? s.createdAt : new Date(s.createdAt).toISOString(),
+          };
+          return mapped;
+        })
         : [];
-      
+
       const professor: Professor | null = data.professor
         ? {
-            id: data.professor.id,
-            name: data.professor.name,
-            email: data.professor.email,
-            role: data.professor.role,
-          }
+          id: data.professor.id,
+          name: data.professor.name,
+          email: data.professor.email,
+          role: data.professor.role,
+        }
         : data.professorName
-        ? {
+          ? {
             id: data.professorId,
             name: data.professorName,
             email: '',
             role: 'professor',
           }
-        : null;
+          : null;
 
       return {
         id: data.id,
@@ -117,7 +117,7 @@ export const classesApi = {
     }
   },
 
-    async getUserClasses(
+  async getUserClasses(
     userId: string,
     userRole: string,
     includeRelations: boolean = true,
@@ -133,14 +133,14 @@ export const classesApi = {
         } catch (err) {
         }
       }
-      
+
       const params = includeRelations ? { include: 'relations' } : undefined;
       const allClasses = await API.classes.list(params);
       const array = Array.isArray(allClasses.data) ? allClasses.data : [];
-      
+
       if (userRole === 'student') {
         const mappedClasses = array.map(mapClassDTO);
-        
+
         let studentClasses = mappedClasses.filter((cls: Class) => {
           if (Array.isArray(cls.students) && cls.students.length > 0) {
             return cls.students.some(student => student.id === userId);
@@ -150,19 +150,19 @@ export const classesApi = {
           }
           return false;
         });
-        
+
         if (studentClasses.length === 0 && userClassId) {
           const classById = mappedClasses.find(cls => cls.id === userClassId);
           if (classById) {
             studentClasses = [classById];
           }
         }
-        
+
         if (studentClasses.length === 0) {
           const classesToFetch = array.filter((clsData: ClassResponseDTO) => {
             return !Array.isArray(clsData.students) || clsData.students.length === 0;
           });
-          
+
           const fetchedClasses = await Promise.all(
             classesToFetch.map(async (clsData: ClassResponseDTO) => {
               try {
@@ -177,22 +177,22 @@ export const classesApi = {
               }
             })
           );
-          
+
           const validClasses = fetchedClasses.filter((cls): cls is Class => cls !== null);
           if (validClasses.length > 0) {
             return validClasses;
           }
         }
-        
+
         if (studentClasses.length > 0) {
           return studentClasses;
         }
-        
+
         return [];
       }
-      
+
       const mappedClasses = array.map(mapClassDTO);
-      
+
       return mappedClasses;
     } catch (error) {
       throw error;
@@ -234,6 +234,32 @@ export const classesApi = {
       const { data } = await API.classes.students(classId);
       return data.students || [];
     } catch (error) {
+      throw error;
+    }
+  },
+
+  async getProfessors(): Promise<Professor[]> {
+    try {
+      const response = await API.users.listByRole('professor');
+      const data = response.data || [];
+      return data.map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role
+      }));
+    } catch (error) {
+      logger.error('Erro ao buscar professores:', error);
+      return [];
+    }
+  },
+
+  async transfer(classId: string, newProfessorId: string): Promise<Class> {
+    try {
+      const { data } = await API.classes.transfer(classId, newProfessorId);
+      return mapClassDTO(data);
+    } catch (error) {
+      logger.error('Erro ao transferir turma:', error);
       throw error;
     }
   },

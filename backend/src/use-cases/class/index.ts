@@ -6,3 +6,4 @@ export * from './DeleteClassUseCase';
 export * from './GetClassStudentsUseCase';
 export * from './AddStudentToClassUseCase';
 export * from './RemoveStudentFromClassUseCase';
+export * from './TransferClassUseCase';

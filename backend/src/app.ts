@@ -67,7 +67,8 @@ import {
   DeleteClassUseCase,
   GetClassStudentsUseCase,
   AddStudentToClassUseCase,
-  RemoveStudentFromClassUseCase
+  RemoveStudentFromClassUseCase,
+  TransferClassUseCase
 } from './use-cases/class';
 import {
   CreateTestCaseUseCase,
@@ -261,6 +262,7 @@ export function createApp(): Application {
   const getClassStudentsUseCase = container.resolve(GetClassStudentsUseCase);
   const addStudentToClassUseCase = container.resolve(AddStudentToClassUseCase);
   const removeStudentFromClassUseCase = container.resolve(RemoveStudentFromClassUseCase);
+  const transferClassUseCase = container.resolve(TransferClassUseCase);
   const createTestCaseUseCase = container.resolve(CreateTestCaseUseCase);
   const getTestCasesByQuestionUseCase = container.resolve(GetTestCasesByQuestionUseCase);
   const getTestCaseByIdUseCase = container.resolve(GetTestCaseByIdUseCase);
@@ -329,7 +331,8 @@ export function createApp(): Application {
     deleteClassUseCase,
     getClassStudentsUseCase,
     addStudentToClassUseCase,
-    removeStudentFromClassUseCase
+    removeStudentFromClassUseCase,
+    transferClassUseCase
   ));
   app.use('/api/submissions', createSubmissionController(
     submissionService,

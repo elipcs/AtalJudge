@@ -3,7 +3,7 @@
 import React from "react";
 
 import { useClassPage } from "@/hooks/useClassPage";
-import { CreateClassModal, EditClassModal, DeleteClassModal, ClassDetails, ClassesList, ClassesError } from "@/components/classes";
+import { CreateClassModal, EditClassModal, DeleteClassModal, TransferClassModal, ClassDetails, ClassesList, ClassesError } from "@/components/classes";
 import PageHeader from "@/components/PageHeader";
 import PageLoading from "@/components/PageLoading";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,14 @@ export default function TurmasPage() {
     userRole,
     currentUser: _currentUser,
     classes,
-    classDetails,    
+    classDetails,
     error,
     success,
     showDetails,
     createClassModal,
     editClassModal,
     deleteClassModal,
+    transferClassModal,
     selectedClass,
     isLoading,
     isStudentLoading,
@@ -27,17 +28,21 @@ export default function TurmasPage() {
     createLoading,
     editLoading,
     deleteLoading,
+    transferLoading,
     classesError,
     handleCreateClass,
     handleViewClassDetails,
     handleBackToList,
     handleEditClass,
     handleDeleteClass,
+    handleTransferClass,
     handleOpenEditModal,
     handleOpenDeleteModal,
+    handleOpenTransferModal,
     setCreateClassModal,
     setEditClassModal,
     setDeleteClassModal,
+    setTransferClassModal,
     setError: _setError,
     setSuccess: _setSuccess
   } = useClassPage();
@@ -48,7 +53,7 @@ export default function TurmasPage() {
 
   if (classesError) {
     return (
-      <ClassesError 
+      <ClassesError
         error={classesError}
         onRetry={() => window.location.reload()}
         onGoToInvites={() => window.location.href = '/convites'}
@@ -71,9 +76,9 @@ export default function TurmasPage() {
           iconColor="indigo"
         >
           {userRole !== 'student' && (
-            <Button 
-              variant="outline" 
-              onClick={handleBackToList} 
+            <Button
+              variant="outline"
+              onClick={handleBackToList}
               className="flex items-center gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold transition-all duration-200 rounded-xl"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,8 +91,8 @@ export default function TurmasPage() {
       ) : (
         <PageHeader
           title={userRole === 'student' ? 'Minha Turma' : 'Minhas Turmas'}
-          description={userRole === 'student' 
-            ? 'Informações da sua turma' 
+          description={userRole === 'student'
+            ? 'Informações da sua turma'
             : 'Escolha uma turma para ver os detalhes'
           }
           icon={
@@ -112,7 +117,7 @@ export default function TurmasPage() {
         </PageHeader>
       )}
 
-      {}
+      { }
       {error && (
         <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-sm mb-6">
           <div className="flex items-center gap-3">
@@ -143,6 +148,7 @@ export default function TurmasPage() {
           onBack={handleBackToList}
           onEditClass={handleOpenEditModal}
           onDeleteClass={handleOpenDeleteModal}
+          onTransferClass={handleOpenTransferModal}
           loading={studentsLoading}
         />
       ) : (
@@ -152,11 +158,12 @@ export default function TurmasPage() {
           onViewDetails={handleViewClassDetails}
           onEditClass={handleOpenEditModal}
           onDeleteClass={handleOpenDeleteModal}
+          onTransferClass={handleOpenTransferModal}
           loading={studentsLoading}
         />
       )}
 
-      {}
+      { }
       <CreateClassModal
         isOpen={createClassModal}
         onClose={() => setCreateClassModal(false)}
@@ -166,7 +173,7 @@ export default function TurmasPage() {
         success={success}
       />
 
-      {}
+      { }
       <EditClassModal
         isOpen={editClassModal}
         onClose={() => setEditClassModal(false)}
@@ -176,13 +183,23 @@ export default function TurmasPage() {
         error={error}
       />
 
-      {}
+      { }
       <DeleteClassModal
         isOpen={deleteClassModal}
         onClose={() => setDeleteClassModal(false)}
         onDeleteClass={handleDeleteClass}
         classData={selectedClass}
         loading={deleteLoading}
+        error={error}
+      />
+
+      { }
+      <TransferClassModal
+        isOpen={transferClassModal}
+        onClose={() => setTransferClassModal(false)}
+        onTransfer={handleTransferClass}
+        classData={selectedClass}
+        loading={transferLoading}
         error={error}
       />
 

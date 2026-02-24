@@ -18,7 +18,8 @@ import {
   DeleteClassUseCase,
   GetClassStudentsUseCase,
   AddStudentToClassUseCase,
-  RemoveStudentFromClassUseCase
+  RemoveStudentFromClassUseCase,
+  TransferClassUseCase
 } from '../use-cases/class';
 
 function createClassController(
@@ -29,123 +30,147 @@ function createClassController(
   deleteClassUseCase: DeleteClassUseCase,
   getClassStudentsUseCase: GetClassStudentsUseCase,
   addStudentToClassUseCase: AddStudentToClassUseCase,
-  removeStudentFromClassUseCase: RemoveStudentFromClassUseCase
+  removeStudentFromClassUseCase: RemoveStudentFromClassUseCase,
+  transferClassUseCase: TransferClassUseCase
 ): Router {
   const router = Router();
 
-router.get(
-  '/',
-  authenticate,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    const includeRelations = req.query.include === 'relations';
-    const classes = await getAllClassesUseCase.execute({ includeRelations });
-    
-    successResponse(res, classes, 'List of classes');
-  })
-);
+  router.get(
+    '/',
+    authenticate,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const includeRelations = req.query.include === 'relations';
+      const classes = await getAllClassesUseCase.execute({ includeRelations });
 
-router.get(
-  '/:id',
-  authenticate,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    const includeRelations = req.query.include === 'relations';
-    const classData = await getClassByIdUseCase.execute({ 
-      classId: req.params.id, 
-      includeRelations 
-    });
-    
-    successResponse(res, classData, 'Class found');
-  })
-);
+      successResponse(res, classes, 'List of classes');
+    })
+  );
 
-router.post(
-  '/',
-  authenticate,
-  requireTeacher,
-  validateBody(CreateClassDTO),
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    logger.debug('[CREATE CLASS] Body recebido', { body: req.body, userId: req.user?.sub });
-    
-    const classData = await createClassUseCase.execute({
-      data: req.body,
-      userId: req.user?.sub!
-    });
-    
-    logger.info('[CREATE CLASS] Class created successfully', { classId: classData.id });
-    successResponse(res, classData, 'Class created successfully', 201);
-  })
-);
+  router.get(
+    '/:id',
+    authenticate,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const includeRelations = req.query.include === 'relations';
+      const classData = await getClassByIdUseCase.execute({
+        classId: req.params.id,
+        includeRelations
+      });
 
-router.put(
-  '/:id',
-  authenticate,
-  validateBody(CreateClassDTO),
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    const classData = await updateClassUseCase.execute({
-      classId: req.params.id,
-      data: req.body,
-      userId: req.user?.sub
-    });
-    
-    successResponse(res, classData, 'Class updated successfully');
-  })
-);
+      successResponse(res, classData, 'Class found');
+    })
+  );
 
-router.delete(
-  '/:id',
-  authenticate,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    await deleteClassUseCase.execute({
-      classId: req.params.id,
-      userId: req.user?.sub
-    });
-    
-    successResponse(res, null, 'Class deleted successfully');
-  })
-);
+  router.post(
+    '/',
+    authenticate,
+    requireTeacher,
+    validateBody(CreateClassDTO),
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      logger.debug('[CREATE CLASS] Body recebido', { body: req.body, userId: req.user?.sub });
 
-router.get(
-  '/:id/students',
-  authenticate,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    const students = await getClassStudentsUseCase.execute(req.params.id);
-    
-    successResponse(res, { students }, 'Alunos da turma');
-  })
-);
+      const classData = await createClassUseCase.execute({
+        data: req.body,
+        userId: req.user?.sub!
+      });
 
-router.post(
-  '/:id/students',
-  authenticate,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    const { studentId } = req.body;
-    
-    if (!studentId) {
-      errorResponse(res, 'Student ID is required', 'VALIDATION_ERROR', 400);
-      return;
-    }
-    
-    await addStudentToClassUseCase.execute({
-      classId: req.params.id,
-      studentId
-    });
-    
-    successResponse(res, null, 'Student added to class');
-  })
-);
+      logger.info('[CREATE CLASS] Class created successfully', { classId: classData.id });
+      successResponse(res, classData, 'Class created successfully', 201);
+    })
+  );
 
-router.delete(
-  '/:id/students/:studentId',
-  authenticate,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    await removeStudentFromClassUseCase.execute({
-      classId: req.params.id,
-      studentId: req.params.studentId
-    });
-    
-    successResponse(res, null, 'Aluno removido da turma');
-  })
-);
+  router.put(
+    '/:id',
+    authenticate,
+    validateBody(CreateClassDTO),
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const classData = await updateClassUseCase.execute({
+        classId: req.params.id,
+        data: req.body,
+        userId: req.user?.sub
+      });
+
+      successResponse(res, classData, 'Class updated successfully');
+    })
+  );
+
+  router.delete(
+    '/:id',
+    authenticate,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      await deleteClassUseCase.execute({
+        classId: req.params.id,
+        userId: req.user?.sub
+      });
+
+      successResponse(res, null, 'Class deleted successfully');
+    })
+  );
+
+  router.get(
+    '/:id/students',
+    authenticate,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const students = await getClassStudentsUseCase.execute(req.params.id);
+
+      successResponse(res, { students }, 'Alunos da turma');
+    })
+  );
+
+  router.post(
+    '/:id/students',
+    authenticate,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const { studentId } = req.body;
+
+      if (!studentId) {
+        errorResponse(res, 'Student ID is required', 'VALIDATION_ERROR', 400);
+        return;
+      }
+
+      await addStudentToClassUseCase.execute({
+        classId: req.params.id,
+        studentId
+      });
+
+      successResponse(res, null, 'Student added to class');
+    })
+  );
+
+  router.delete(
+    '/:id/students/:studentId',
+    authenticate,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      await removeStudentFromClassUseCase.execute({
+        classId: req.params.id,
+        studentId: req.params.studentId
+      });
+
+      successResponse(res, null, 'Aluno removido da turma');
+    })
+  );
+
+  router.post(
+    '/:id/transfer',
+    authenticate,
+    requireTeacher,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const { newProfessorId } = req.body;
+
+      if (!newProfessorId) {
+        errorResponse(res, 'New professor ID is required', 'VALIDATION_ERROR', 400);
+        return;
+      }
+
+      const classData = await transferClassUseCase.execute({
+        classId: req.params.id,
+        newProfessorId,
+        userId: req.user?.sub!,
+        userRole: req.user?.role! as any // Cast to UserRole
+      });
+
+      successResponse(res, classData, 'Turma transferida com sucesso');
+    })
+  );
 
   return router;
 }

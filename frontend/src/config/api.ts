@@ -311,6 +311,7 @@ export const API = {
     profile: () => get<UserResponseDTO>('/users/profile'),
     updateProfile: (data: Partial<UserResponseDTO>) => put<UserResponseDTO>('/users/profile', data),
     changePassword: (data: { currentPassword: string; newPassword: string }) => post<null>('/users/change-password', data),
+    listByRole: (role: string) => get<UserResponseDTO[]>(`/users/role/${role}`),
   },
 
   classes: {
@@ -328,6 +329,7 @@ export const API = {
     students: (id: string) => get<{ students: Array<{ id: string; name: string; email: string; role: string; studentRegistration?: string; createdAt: string }> }>(`/classes/${id}/students`),
     addStudent: (classId: string, studentId: string) => post<null>(`/classes/${classId}/students`, { studentId }),
     removeStudent: (classId: string, studentId: string) => del<null>(`/classes/${classId}/students/${studentId}`),
+    transfer: (id: string, newProfessorId: string) => post<ClassResponseDTO>(`/classes/${id}/transfer`, { newProfessorId }),
   },
 
   lists: {

@@ -8,7 +8,7 @@
 import { injectable, inject } from 'tsyringe';
 import { CreateClassDTO, ClassResponseDTO } from '../dtos';
 import { UserRole } from '../enums';
-import { logger, NotFoundError, ForbiddenError, ValidationError } from '../utils';
+import { logger, NotFoundError, ForbiddenError, ValidationError, InternalServerError } from '../utils';
 import { ClassRepository, UserRepository } from '../repositories';
 import { Class } from '../models/Class';
 
@@ -17,7 +17,7 @@ export class ClassService {
   constructor(
     @inject(ClassRepository) private classRepository: ClassRepository,
     @inject(UserRepository) private userRepository: UserRepository
-  ) {}
+  ) { }
 
   async getAllClasses(includeRelations: boolean = false): Promise<ClassResponseDTO[]> {
     const queryBuilder = this.classRepository
@@ -74,7 +74,7 @@ export class ClassService {
     }
 
     logger.debug('[SERVICE] Professor encontrado', { id: professor.id, role: professor.role });
-    
+
     if (professor.role !== UserRole.PROFESSOR && professor.role !== UserRole.ASSISTANT) {
       logger.error('[SERVICE] Usuário não é professor/assistente', { role: professor.role });
       throw new ForbiddenError('Apenas professores podem criar turmas', 'INVALID_ROLE');
@@ -86,7 +86,7 @@ export class ClassService {
       name: data.name,
       professorId: professorId,
     });
-    
+
     logger.debug('[SERVICE] Entidade criada', { id: classEntity.id, name: classEntity.name, professorId: classEntity.professorId });
 
     logger.info('[SERVICE] Turma salva com sucesso', { classId: classEntity.id });
@@ -108,7 +108,7 @@ export class ClassService {
     }
 
     const updated = await this.classRepository.update(id, { name: data.name });
-    
+
     if (!updated) {
       throw new NotFoundError('Turma não encontrada', 'CLASS_NOT_FOUND');
     }
@@ -198,6 +198,40 @@ export class ClassService {
     await this.classRepository.removeStudent(classId, studentId);
   }
 
+  async transferClass(classId: string, newProfessorId: string, userId?: string, userRole?: UserRole): Promise<ClassResponseDTO> {
+    logger.debug('[SERVICE] Transferindo turma', { classId, newProfessorId, userId });
+
+    const classEntity = await this.classRepository.findById(classId);
+
+    if (!classEntity) {
+      throw new NotFoundError('Turma não encontrada', 'CLASS_NOT_FOUND');
+    }
+
+    // Permission check: only current professor or (potentially) any other teacher with enough privilege
+    if (userId && classEntity.professorId !== userId && userRole !== UserRole.PROFESSOR) {
+      throw new ForbiddenError('Apenas o professor da turma pode realizar a transferência', 'NO_PERMISSION');
+    }
+
+    const newProfessor = await this.userRepository.findById(newProfessorId);
+
+    if (!newProfessor) {
+      throw new NotFoundError('Novo professor não encontrado', 'PROFESSOR_NOT_FOUND');
+    }
+
+    if (newProfessor.role !== UserRole.PROFESSOR && newProfessor.role !== UserRole.ASSISTANT) {
+      throw new ValidationError('O novo usuário deve ser um professor ou assistente', 'INVALID_PROFESSOR_ROLE');
+    }
+
+    const updated = await this.classRepository.update(classId, { professorId: newProfessorId });
+
+    if (!updated) {
+      throw new InternalServerError('Erro ao transferir turma', 'TRANSFER_ERROR');
+    }
+
+    logger.info('[SERVICE] Turma transferida com sucesso', { classId, from: classEntity.professorId, to: newProfessorId });
+    return this.toResponseDTO(updated, false);
+  }
+
   private toResponseDTO(classEntity: Class, includeRelations: boolean): ClassResponseDTO {
     const dto: Partial<ClassResponseDTO> = {
       id: classEntity.id,
@@ -249,7 +283,7 @@ export class ClassService {
               updatedAt: grade.updatedAt.toISOString()
             }));
           }
-          
+
           return studentData;
         });
       }
