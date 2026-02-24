@@ -26,7 +26,7 @@ export class UpdateQuestionListUseCase implements IUseCase<UpdateQuestionListUse
   constructor(
     @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
     @inject(ClassRepository) private classRepository: ClassRepository
-  ) {}
+  ) { }
 
   async execute(input: UpdateQuestionListUseCaseInput): Promise<QuestionListResponseDTO> {
     const { questionListId, dto, userId } = input;
@@ -50,6 +50,7 @@ export class UpdateQuestionListUseCase implements IUseCase<UpdateQuestionListUse
     if (dto.startDate) questionList.startDate = new Date(dto.startDate);
     if (dto.endDate) questionList.endDate = new Date(dto.endDate);
     if (dto.isRestricted !== undefined) questionList.isRestricted = dto.isRestricted;
+    if (dto.countTowardScore !== undefined) questionList.countTowardScore = dto.countTowardScore;
 
     // 4. Update classes (if specified)
     if (dto.classIds !== undefined) {

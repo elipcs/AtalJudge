@@ -23,7 +23,7 @@ export class CreateQuestionListUseCase implements IUseCase<CreateQuestionListUse
   constructor(
     @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
     @inject(ClassRepository) private classRepository: ClassRepository
-  ) {}
+  ) { }
 
   async execute(input: CreateQuestionListUseCaseInput): Promise<QuestionListResponseDTO> {
     const { dto } = input;
@@ -48,6 +48,7 @@ export class CreateQuestionListUseCase implements IUseCase<CreateQuestionListUse
     questionList.minQuestionsForMaxScore = dto.minQuestionsForMaxScore;
     questionList.questionGroups = normalizedGroups;
     questionList.isRestricted = dto.isRestricted || false;
+    questionList.countTowardScore = dto.countTowardScore ?? true;
 
     // 3. Save to database
     const savedList = await this.questionListRepository.create(questionList);
@@ -57,12 +58,12 @@ export class CreateQuestionListUseCase implements IUseCase<CreateQuestionListUse
       const classes = await this.classRepository.findByIds(dto.classIds);
       savedList.classes = classes;
       const questionListWithClasses = await this.questionListRepository.save(savedList);
-      
-      logger.info('[CreateQuestionListUseCase] List created with classes', { 
-        questionListId: questionListWithClasses.id, 
-        classesCount: classes.length 
+
+      logger.info('[CreateQuestionListUseCase] List created with classes', {
+        questionListId: questionListWithClasses.id,
+        classesCount: classes.length
       });
-      
+
       return this.toDTO(questionListWithClasses);
     }
 
