@@ -86,7 +86,8 @@ export const config = {
     defaultCpuTimeLimit: parseFloat(process.env.DEFAULT_CPU_TIME_LIMIT || '2.0'),
     defaultWallTimeLimit: parseFloat(process.env.DEFAULT_WALL_TIME_LIMIT || '5.0'),
     defaultMemoryLimitKB: parseInt(process.env.DEFAULT_MEMORY_LIMIT_KB || '262144', 10),
-    maxSubmissionsPerMinute: parseInt(process.env.MAX_SUBMISSIONS_PER_MINUTE || '5', 10)
+    maxSubmissionsPerMinute: parseInt(process.env.MAX_SUBMISSIONS_PER_MINUTE || '5', 10),
+    javaStartupOffset: parseFloat(process.env.JAVA_STARTUP_OFFSET || '0.5')
   }
 };
 

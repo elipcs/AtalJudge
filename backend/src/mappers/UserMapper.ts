@@ -7,9 +7,9 @@
  * @module mappers/UserMapper
  */
 import { User } from '../models/User';
-import { Student } from '../models/Student';
 import { UserResponseDTO, UserRegisterDTO, UpdateProfileDTO } from '../dtos/UserDtos';
 import { UserRole } from '../enums';
+import { GradeMapper } from './GradeMapper';
 
 /**
  * User Mapper Class
@@ -39,13 +39,17 @@ export class UserMapper {
     };
 
     // Adds Student-specific properties
-    if (user instanceof Student) {
-      const student = user as Student;
-      dto.studentRegistration = student.studentRegistration;
-      
-      if (student.class) {
-        dto.classId = student.class.id;
-        dto.className = student.class.name;
+    if (user.role === UserRole.STUDENT || (user as any).studentRegistration) {
+      dto.studentRegistration = (user as any).studentRegistration;
+
+      if ((user as any).class) {
+        dto.classId = (user as any).class.id;
+        dto.className = (user as any).class.name;
+      }
+
+      const grades = (user as any).grades;
+      if (grades && Array.isArray(grades)) {
+        dto.grades = GradeMapper.toDTOList(grades);
       }
     }
 
@@ -71,10 +75,10 @@ export class UserMapper {
     user.name = dto.name;
     user.email = dto.email;
     user.role = dto.role || UserRole.STUDENT;
-    
+
     // If it's a student and has studentRegistration
-    if (user instanceof Student && dto.studentRegistration) {
-      user.studentRegistration = dto.studentRegistration;
+    if ((user.role === UserRole.STUDENT || (user as any).studentRegistration) && dto.studentRegistration) {
+      (user as any).studentRegistration = dto.studentRegistration;
     }
   }
 
@@ -91,8 +95,8 @@ export class UserMapper {
     }
 
     // Applies Student-specific properties
-    if (user instanceof Student && dto.studentRegistration !== undefined) {
-      (user as Student).studentRegistration = dto.studentRegistration;
+    if ((user.role === UserRole.STUDENT || (user as any).studentRegistration) && dto.studentRegistration !== undefined) {
+      (user as any).studentRegistration = dto.studentRegistration;
     }
   }
 

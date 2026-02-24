@@ -330,9 +330,12 @@ export class SubmissionService {
       for (let i = 0; i < results.length; i++) {
         const judge0Result = results[i];
         const testCase = testCases[i];
+
+        // If question uses a custom checker, we don't pass expectedOutput here
+        // so SandboxFusion won't do a simple string comparison.
         const processedResult = this.judgeService.processSubmissionResult(
           judge0Result,
-          testCase.expectedOutput
+          question.useChecker ? undefined : testCase.expectedOutput
         );
 
         if (processedResult.verdict === JudgeVerdict.COMPILATION_ERROR) {
@@ -365,6 +368,91 @@ export class SubmissionService {
 
         if (processedResult.memoryUsedKb && processedResult.memoryUsedKb > maxMemory) {
           maxMemory = processedResult.memoryUsedKb;
+        }
+      }
+
+      // --- Custom Checker Execution Phase ---
+      if (question.useChecker && question.checkerCode && question.checkerLanguage && !hasCompilationError) {
+        logger.info('Executing custom checkers', { submissionId, count: submissionResults.length });
+
+        const checkerBatch: Array<{
+          tokenIndex: number;
+          sourceCode: string;
+          language: ProgrammingLanguage;
+          stdin: string;
+        }> = [];
+
+        for (let i = 0; i < submissionResults.length; i++) {
+          const res = submissionResults[i];
+          // Only run checker if student code executed successfully (including Wrong Answer if we suspect it might be right)
+          // Since we didn't pass expectedOutput above, Successful execution will be JudgeVerdict.ACCEPTED
+          if (res.verdict === JudgeVerdict.ACCEPTED) {
+            const testCase = testCases[i];
+            const checkerInput = JSON.stringify({
+              input: testCase.input,
+              output: res.output,
+              expected: testCase.expectedOutput
+            });
+
+            checkerBatch.push({
+              tokenIndex: i,
+              sourceCode: question.checkerCode,
+              language: question.checkerLanguage as ProgrammingLanguage,
+              stdin: checkerInput
+            });
+          }
+        }
+
+        if (checkerBatch.length > 0) {
+          logger.info('Submitting checker batch', { submissionId, batchSize: checkerBatch.length });
+
+          const checkerTokens = await this.judgeService.createBatchSubmissions(
+            checkerBatch.map(s => ({
+              sourceCode: s.sourceCode,
+              language: s.language,
+              stdin: s.stdin
+            })),
+            {
+              cpuTimeLimit: 5, // Checkers usually have a bit more time
+              memoryLimit: 256000
+            }
+          );
+
+          const cResults = await this.judgeService.waitForBatchSubmissionsWithCallback(
+            checkerTokens,
+            async () => { }
+          );
+
+          // Reset passedTests count as we'll re-calculate based on checker results
+          passedTests = 0;
+
+          for (let i = 0; i < cResults.length; i++) {
+            const checkerProcessed = this.judgeService.processSubmissionResult(cResults[i]);
+            const originalIndex = checkerBatch[i].tokenIndex;
+            const originalResult = submissionResults[originalIndex];
+
+            // If checker exits with 0 (Accepted in SandboxFusion), it means passed
+            if (checkerProcessed.verdict === JudgeVerdict.ACCEPTED) {
+              originalResult.passed = true;
+              originalResult.verdict = JudgeVerdict.ACCEPTED;
+            } else {
+              originalResult.passed = false;
+              originalResult.verdict = JudgeVerdict.WRONG_ANSWER;
+              // If checker crashed, maybe log it but still mark as WA or Judge Error?
+              // For now, any non-Accepted checker result is "Wrong Answer"
+              if (checkerProcessed.verdict !== JudgeVerdict.WRONG_ANSWER) {
+                logger.warn('Checker failed with non-WA verdict', {
+                  submissionId,
+                  testCaseId: originalResult.testCaseId,
+                  checkerVerdict: checkerProcessed.verdict,
+                  checkerError: checkerProcessed.errorMessage
+                });
+              }
+            }
+          }
+
+          // Re-calculate passedTests for all (including those that didn't run checker like TLE)
+          passedTests = submissionResults.filter(r => r.passed).length;
         }
       }
 

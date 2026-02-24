@@ -91,6 +91,8 @@ services:
       dockerfile: Dockerfile.java
     restart: always
     mem_limit: 512m
+    environment:
+      - JAVA_STARTUP_OFFSET=${JAVA_STARTUP_OFFSET:-0.5}
     expose:
       - "3000"
 

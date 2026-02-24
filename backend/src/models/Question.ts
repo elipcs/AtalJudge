@@ -37,6 +37,15 @@ export class Question {
   @Column({ name: 'oracle_language', type: 'varchar', length: 20, nullable: true })
   oracleLanguage?: string;
 
+  @Column({ name: 'use_checker', type: 'boolean', default: false })
+  useChecker!: boolean;
+
+  @Column({ name: 'checker_code', type: 'text', nullable: true })
+  checkerCode?: string;
+
+  @Column({ name: 'checker_language', type: 'varchar', length: 20, nullable: true })
+  checkerLanguage?: string;
+
   @Column({ type: 'varchar', length: 200, nullable: true })
   source?: string;
 

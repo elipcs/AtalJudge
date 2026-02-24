@@ -22,7 +22,7 @@ export default function GenerateTestCasesModal({
   const [oracleCode, setOracleCode] = useState("");
   const [inputs, setInputs] = useState<string[]>([""]);
   const [defaultWeight, setDefaultWeight] = useState<number>(10);
-  const [defaultIsHidden, setDefaultIsHidden] = useState(false);
+  const [defaultIsHidden, setDefaultIsHidden] = useState(true);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -178,16 +178,19 @@ export default function GenerateTestCasesModal({
                       disabled={isGenerating}
                     />
                   </div>
-                  <div className="w-32 flex flex-col justify-end pb-1.5">
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700">
-                      <input
-                        type="checkbox"
-                        checked={defaultIsHidden}
-                        onChange={(e) => setDefaultIsHidden(e.target.checked)}
-                        disabled={isGenerating}
-                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                      />
-                      <span>Ocultos?</span>
+                  <div className="flex-1 flex flex-col justify-end pb-1.5 min-w-[120px]">
+                    <label className="group flex items-center gap-3 cursor-pointer select-none">
+                      <div className="relative flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={defaultIsHidden}
+                          onChange={(e) => setDefaultIsHidden(e.target.checked)}
+                          disabled={isGenerating}
+                          className="peer sr-only"
+                        />
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors">Ocultos?</span>
                     </label>
                   </div>
                 </div>

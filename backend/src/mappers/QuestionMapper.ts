@@ -34,6 +34,9 @@ export class QuestionMapper {
       examples: question.examples,
       oracleCode: question.oracleCode,
       oracleLanguage: question.oracleLanguage,
+      useChecker: question.useChecker,
+      checkerCode: question.checkerCode,
+      checkerLanguage: question.checkerLanguage,
       source: question.source ?? undefined,
       tags: question.tags ?? [],
       createdAt: question.createdAt,
@@ -58,6 +61,11 @@ export class QuestionMapper {
     question.memoryLimitKb = dto.memoryLimitKb || 64000;
     question.examples = dto.examples || [];
 
+    // Checker fields
+    if (dto.useChecker !== undefined) question.useChecker = dto.useChecker;
+    if (dto.checkerCode !== undefined) question.checkerCode = dto.checkerCode;
+    if (dto.checkerLanguage !== undefined) question.checkerLanguage = dto.checkerLanguage;
+
     // Mapeia source e tags
     if (dto.source !== undefined && dto.source !== null) question.source = dto.source;
     if (dto.tags !== undefined && dto.tags !== null) question.tags = dto.tags;
@@ -77,6 +85,11 @@ export class QuestionMapper {
     // Oracle code fields
     if (dto.oracleCode !== undefined) question.oracleCode = dto.oracleCode;
     if (dto.oracleLanguage !== undefined) question.oracleLanguage = dto.oracleLanguage;
+
+    // Checker fields
+    if (dto.useChecker !== undefined) question.useChecker = dto.useChecker;
+    if (dto.checkerCode !== undefined) question.checkerCode = dto.checkerCode;
+    if (dto.checkerLanguage !== undefined) question.checkerLanguage = dto.checkerLanguage;
 
     // Source and tags fields
     if (dto.source !== undefined && dto.source !== null) question.source = dto.source;

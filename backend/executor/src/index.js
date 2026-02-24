@@ -40,11 +40,13 @@ app.post('/run', async (req, res) => {
         let spawnCmd = cmd;
         let spawnArgs = args || [];
 
-        // Default constraints
         // Java needs more time for JVM startup
         const defaultTimeLimit = language === 'java' ? 3.0 : 2.0;
         const timeLimit = req.body.cpuTimeLimit || defaultTimeLimit;
         const timeoutMs = Math.ceil(timeLimit * 1000);
+
+        const javaStartupOffset = process.env.JAVA_STARTUP_OFFSET ? parseFloat(process.env.JAVA_STARTUP_OFFSET) : 0.5;
+        const absoluteTimeoutMs = language === 'java' ? timeoutMs + Math.ceil(javaStartupOffset * 1000) : timeoutMs;
 
         // Compilation for Java
         if (language === 'java') {
@@ -97,12 +99,17 @@ app.post('/run', async (req, res) => {
         const timer = setTimeout(() => {
             child.kill('SIGKILL');
             stderr += '\nTime Limit Exceeded';
-        }, timeoutMs);
+        }, absoluteTimeoutMs);
 
         child.on('close', (code) => {
             clearTimeout(timer);
             const [seconds, nanoseconds] = process.hrtime(startTime);
-            const timeInSeconds = seconds + nanoseconds / 1e9;
+            let timeInSeconds = seconds + nanoseconds / 1e9;
+
+            // Subtract startup offset for Java to be fair
+            if (language === 'java') {
+                timeInSeconds = Math.max(0, timeInSeconds - javaStartupOffset);
+            }
 
             // Cleanup
             try {

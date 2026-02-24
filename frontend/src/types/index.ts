@@ -64,6 +64,9 @@ export interface Question {
   group?: string;
   source?: string;
   tags?: string[];
+  useChecker?: boolean;
+  checkerCode?: string;
+  checkerLanguage?: string;
 }
 
 export interface Submission {

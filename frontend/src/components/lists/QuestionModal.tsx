@@ -14,8 +14,10 @@ interface QuestionFormData {
   }>;
   timeLimit: string;
   memoryLimit: string;
-  source?: string;
   tags?: string[];
+  useChecker?: boolean;
+  checkerCode?: string;
+  checkerLanguage?: string;
 }
 
 interface QuestionModalProps {
@@ -44,6 +46,9 @@ export default function QuestionModal({
     examples: question?.examples || [{ input: '', output: '' }],
     source: question?.source || '',
     tags: question?.tags || [],
+    useChecker: question?.useChecker || false,
+    checkerCode: question?.checkerCode || '',
+    checkerLanguage: question?.checkerLanguage || 'python',
   });
 
   React.useEffect(() => {
@@ -75,6 +80,9 @@ export default function QuestionModal({
         examples: question.examples || [{ input: '', output: '' }],
         source: question.source || '',
         tags: question.tags || [],
+        useChecker: question.useChecker || false,
+        checkerCode: question.checkerCode || '',
+        checkerLanguage: question.checkerLanguage || 'python',
       });
     } else {
       setFormData({
@@ -85,6 +93,9 @@ export default function QuestionModal({
         examples: [{ input: '', output: '' }],
         source: '',
         tags: [],
+        useChecker: false,
+        checkerCode: '',
+        checkerLanguage: 'python',
       });
     }
   }, [question, isOpen]);
@@ -279,6 +290,67 @@ export default function QuestionModal({
                   placeholder="Adicionar tags..."
                 />
               </div>
+            </div>
+
+            <div className="border-t border-slate-200 pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-50 rounded-lg">
+                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <label className="text-base font-semibold text-slate-800">Usar Custom Checker (Special Judge)</label>
+                    <p className="text-xs text-slate-500">Permite validar a solução do aluno com um script customizado</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.useChecker}
+                    onChange={(e) => setFormData({ ...formData, useChecker: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              {formData.useChecker && (
+                <div className="mt-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="md:w-1/4">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Linguagem do Checker</label>
+                      <select
+                        value={formData.checkerLanguage}
+                        onChange={(e) => setFormData({ ...formData, checkerLanguage: e.target.value })}
+                        className="w-full h-11 px-4 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-900"
+                      >
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                      </select>
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Código do Checker</label>
+                      <div className="relative group">
+                        <textarea
+                          value={formData.checkerCode}
+                          onChange={(e) => setFormData({ ...formData, checkerCode: e.target.value })}
+                          className="w-full h-48 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-900 text-slate-100 font-mono text-sm placeholder:text-slate-500 resize-none transition-all"
+                          placeholder="# O checker recebe JSON no stdin:&#10;# { 'input': '...', 'output': '...', 'expected': '...' }&#10;# Retorne exit code 0 para ACEITO, != 0 para ERRO"
+                        />
+                        <div className="absolute top-3 right-3 px-2 py-1 bg-slate-800 rounded text-[10px] font-bold text-slate-400 group-hover:text-slate-200 transition-colors uppercase tracking-wider">
+                          Editor de Checker
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500 italic">
+                        Dica: O checker deve ler o stdin como JSON e sair com status 0 se a saída do aluno for aceitável.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>

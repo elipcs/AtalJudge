@@ -64,6 +64,17 @@ export abstract class CreateQuestionDTO {
   questionListId?: string;
 
   @IsOptional()
+  useChecker?: boolean;
+
+  @IsOptional()
+  @IsString()
+  checkerCode?: string;
+
+  @IsOptional()
+  @IsString()
+  checkerLanguage?: string;
+
+  @IsOptional()
   @IsString()
   source?: string | null;
 
@@ -119,6 +130,17 @@ export abstract class UpdateQuestionDTO {
   oracleLanguage?: string;
 
   @IsOptional()
+  useChecker?: boolean;
+
+  @IsOptional()
+  @IsString()
+  checkerCode?: string;
+
+  @IsOptional()
+  @IsString()
+  checkerLanguage?: string;
+
+  @IsOptional()
   @IsString()
   source?: string | null;
 
@@ -137,6 +159,9 @@ export class QuestionResponseDTO {
   examples!: QuestionExample[];
   oracleCode?: string;
   oracleLanguage?: string;
+  useChecker!: boolean;
+  checkerCode?: string;
+  checkerLanguage?: string;
   source?: string;
   tags!: string[];
   createdAt!: Date;
