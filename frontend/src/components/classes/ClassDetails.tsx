@@ -285,8 +285,8 @@ export default function ClassDetails({
             <p className="text-slate-600 text-lg leading-relaxed max-w-lg mx-auto">Esta turma ainda não possui alunos matriculados.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-200">
+            <table className="w-full min-w-[800px] border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100">
                   <th className="text-left py-4 px-6 font-semibold text-slate-700">Nome</th>
@@ -295,11 +295,9 @@ export default function ClassDetails({
                   {userRole !== 'student' && (
                     <>
                       {listsForGrade.map((list) => (
-                        <th key={list.id} className="text-left py-4 px-6 font-semibold text-slate-700">
-                          <div className="max-w-24">
-                            <div className="text-xs text-slate-500 truncate" title={list.title}>
-                              {list.title}
-                            </div>
+                        <th key={list.id} className="text-left py-4 px-6 font-semibold text-slate-700 min-w-[120px]">
+                          <div className="text-xs text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis" title={list.title}>
+                            {list.title}
                           </div>
                         </th>
                       ))}

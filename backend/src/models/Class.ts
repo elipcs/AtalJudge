@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { User } from './User';
+import { Student } from './Student';
 
 @Entity('classes')
 export class Class {
@@ -22,7 +23,7 @@ export class Class {
   @JoinColumn({ name: 'professor_id' })
   professor!: User;
 
-  @OneToMany(() => User, user => user.class, { eager: false })
-  students!: User[];
+  @OneToMany(() => Student, student => student.class, { eager: false })
+  students!: Student[];
 }
 
