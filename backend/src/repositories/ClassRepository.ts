@@ -3,6 +3,7 @@ import { In } from 'typeorm';
 import { BaseRepository } from './BaseRepository';
 import { Class } from '../models/Class';
 import { User } from '../models/User';
+import { Student } from '../models/Student';
 
 @injectable()
 export class ClassRepository extends BaseRepository<Class> {
@@ -114,12 +115,12 @@ export class ClassRepository extends BaseRepository<Class> {
     );
   }
 
-  async findStudents(classId: string): Promise<User[]> {
-    const userRepository = this.repository.manager.getRepository<User>('User');
-    return userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.grades', 'grades')
-      .where('user.class_id = :classId', { classId })
+  async findStudents(classId: string): Promise<Student[]> {
+    const studentRepository = this.repository.manager.getRepository(Student);
+    return studentRepository
+      .createQueryBuilder('student')
+      .leftJoinAndSelect('student.grades', 'grades')
+      .where('student.class_id = :classId', { classId })
       .getMany();
   }
 
