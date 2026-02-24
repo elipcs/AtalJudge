@@ -14,6 +14,7 @@ interface QuestionFormData {
   }>;
   timeLimit: string;
   memoryLimit: string;
+  source?: string;
   tags?: string[];
   useChecker?: boolean;
   checkerCode?: string;

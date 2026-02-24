@@ -482,6 +482,9 @@ export default function QuestoesPage() {
                                 examples,
                                 source: questionData.source ? questionData.source.trim() : null,
                                 tags: questionData.tags && questionData.tags.length > 0 ? questionData.tags.filter((t: string) => t.trim()) : null,
+                                useChecker: questionData.useChecker || false,
+                                checkerCode: questionData.checkerCode || '',
+                                checkerLanguage: questionData.checkerLanguage || 'python',
                             };
 
                             if (selectedQuestion) {
