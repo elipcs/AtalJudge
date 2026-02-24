@@ -4,6 +4,7 @@ import { useState } from "react";
 import CodeEditor from "./../ui/CodeEditor";
 import { generateTestCasesOracle } from "@/services/testCases";
 import { logger } from "@/utils/logger";
+import JSZip from "jszip";
 
 interface GenerateTestCasesModalProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export default function GenerateTestCasesModal({
   const [inputs, setInputs] = useState<string[]>([""]);
   const [defaultWeight, setDefaultWeight] = useState<number>(10);
   const [defaultIsHidden, setDefaultIsHidden] = useState(true);
-
+  const [isProcessingZip, setIsProcessingZip] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -45,6 +46,58 @@ export default function GenerateTestCasesModal({
     const newInputs = [...inputs];
     newInputs[index] = value;
     setInputs(newInputs);
+  };
+
+  const handleZipUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      setError("Por favor, selecione um arquivo .zip");
+      return;
+    }
+
+    setIsProcessingZip(true);
+    setError(null);
+    try {
+      const zip = new JSZip();
+      const contents = await zip.loadAsync(file);
+      const newInputsFromZip: string[] = [];
+
+      // Sort files alphabetically to maintain some order
+      const fileNames = Object.keys(contents.files).sort();
+
+      for (const filename of fileNames) {
+        const zipFile = contents.files[filename];
+        if (!zipFile.dir && (filename.toLowerCase().endsWith('.txt') || filename.toLowerCase().endsWith('.in'))) {
+          const text = await zipFile.async("string");
+          if (text.trim()) {
+            newInputsFromZip.push(text.trim());
+          }
+        }
+      }
+
+      if (newInputsFromZip.length === 0) {
+        setError("Nenhum arquivo .txt ou .in válido foi encontrado no zip.");
+      } else {
+        // If current inputs only has one empty input, replace it. Otherwise append.
+        if (inputs.length === 1 && inputs[0].trim() === "") {
+          setInputs(newInputsFromZip);
+        } else {
+          setInputs([...inputs, ...newInputsFromZip]);
+        }
+        setSuccessMsg(`${newInputsFromZip.length} entradas extraídas do zip com sucesso!`);
+        // Remove success message after a few seconds
+        setTimeout(() => setSuccessMsg(null), 3000);
+      }
+    } catch (err: any) {
+      logger.error("Erro ao processar arquivo zip:", err);
+      setError("Falha ao abrir o arquivo zip. Verifique se o arquivo não está corrompido.");
+    } finally {
+      setIsProcessingZip(false);
+      // Reset input so the same file can be uploaded again if needed
+      event.target.value = "";
+    }
   };
 
   const currentLineCount = oracleCode.split("\n").length;
@@ -250,11 +303,11 @@ export default function GenerateTestCasesModal({
                       </div>
                     ))}
                   </div>
-                  <div className="p-3 bg-white border-t border-slate-100">
+                  <div className="p-3 bg-white border-t border-slate-100 space-y-2">
                     <button
                       type="button"
                       onClick={handleAddInput}
-                      disabled={isGenerating}
+                      disabled={isGenerating || isProcessingZip}
                       className="w-full px-4 py-2 border-2 border-dashed border-slate-300 text-slate-600 rounded-lg hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center justify-center gap-2"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,6 +315,34 @@ export default function GenerateTestCasesModal({
                       </svg>
                       Adicionar Nova Entrada
                     </button>
+
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept=".zip"
+                        onChange={handleZipUpload}
+                        disabled={isGenerating || isProcessingZip}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                        title="Upload zip de arquivos .txt ou .in"
+                      />
+                      <button
+                        type="button"
+                        disabled={isGenerating || isProcessingZip}
+                        className="w-full px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:border-indigo-400 hover:text-indigo-600 hover:bg-slate-50 font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isProcessingZip ? (
+                          <svg className="animate-spin h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                        )}
+                        Upload .zip (Txt/In)
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
