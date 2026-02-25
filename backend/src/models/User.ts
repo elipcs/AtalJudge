@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { UserRole } from '../enums';
 import { Submission } from './Submission';
 import { ValidationError } from '../utils';
-import { Class } from './Class';
+import type { Class } from './Class';
 import { Email, Password } from '../domain/value-objects';
 
 @Entity('users')
@@ -51,10 +51,10 @@ export class User {
   @OneToMany(() => Submission, submission => submission.user)
   submissions!: Submission[];
 
-  @OneToMany(() => Class, classEntity => classEntity.professor)
+  @OneToMany('Class', 'professor')
   classesTaught!: Class[];
 
-  @ManyToOne(() => Class, classEntity => classEntity.students, { nullable: true })
+  @ManyToOne('Class', 'students', { nullable: true })
   @JoinColumn({ name: 'class_id' })
   class?: Class;
 
@@ -137,10 +137,10 @@ export class User {
    */
   isActive(): boolean {
     if (!this.lastLogin) return false;
-    
+
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-    
+
     return this.lastLogin >= ninetyDaysAgo;
   }
 
@@ -150,7 +150,7 @@ export class User {
   isNewUser(): boolean {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
+
     return this.createdAt >= sevenDaysAgo;
   }
 
@@ -184,11 +184,11 @@ export class User {
     if (!this.name || !this.name.trim()) {
       throw new ValidationError('Name cannot be empty', 'NAME_REQUIRED');
     }
-    
+
     if (!this.email || !this.email.trim()) {
       throw new ValidationError('Email cannot be empty', 'EMAIL_REQUIRED');
     }
-    
+
     // Validates and normalizes using Email Value Object
     const emailVO = Email.tryCreate(this.email);
     if (!emailVO) {

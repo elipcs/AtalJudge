@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { User } from './User';
-import { Student } from './Student';
+import type { User } from './User';
+import type { Student } from './Student';
 
 @Entity('classes')
 export class Class {
@@ -19,11 +19,11 @@ export class Class {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt!: Date;
 
-  @ManyToOne(() => User, user => user.classesTaught)
+  @ManyToOne('User', 'classesTaught')
   @JoinColumn({ name: 'professor_id' })
   professor!: User;
 
-  @OneToMany(() => Student, student => student.class, { eager: false })
+  @OneToMany('Student', 'class', { eager: false })
   students!: Student[];
 }
 
