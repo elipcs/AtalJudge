@@ -304,6 +304,8 @@ export const API = {
       post<{ accessToken: string; refreshToken: string }>(
         '/auth/refresh', { refreshToken }, { skipAuth: true }
       ),
+    generateResetLink: (userId: string) =>
+      post<{ resetLink: string }>(`/auth/professor/generate-reset-link/${userId}`),
   },
 
   users: {

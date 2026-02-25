@@ -322,6 +322,20 @@ export function useSettings() {
     }
   }, [selectedTeachers, loadTeachers]);
 
+  const generateResetLink = useCallback(async (userId: string) => {
+    try {
+      setSaving(true);
+      const response = await API.auth.generateResetLink(userId);
+      setSuccess('Link de recuperação gerado com sucesso!');
+      return response.data.resetLink;
+    } catch (_error) {
+      setError(_error instanceof Error ? _error.message : 'Erro ao gerar link de recuperação');
+      return null;
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => setError(null), []);
   const clearSuccess = useCallback(() => setSuccess(null), []);
 
@@ -443,5 +457,6 @@ export function useSettings() {
     toggleStudentSelection,
     toggleMonitorSelection,
     toggleTeacherSelection,
+    generateResetLink,
   };
 }

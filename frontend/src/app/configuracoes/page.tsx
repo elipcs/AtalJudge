@@ -63,6 +63,7 @@ export default function ConfiguracoesPage() {
     loadTeachers,
     toggleTeacherSelection,
     removeSelectedTeachers,
+    generateResetLink,
   } = useSettings();
 
   const [showClassModal, setShowClassModal] = useState(false);
@@ -184,6 +185,7 @@ export default function ConfiguracoesPage() {
             onStudentToggle={toggleStudentSelection}
             onRemoveSelected={removeSelectedStudents}
             onManageClass={handleManageClass}
+            onGenerateResetLink={generateResetLink}
           />
 
           <ManageStudentClassModal

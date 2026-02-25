@@ -42,7 +42,8 @@ import {
   RefreshTokenUseCase,
   LogoutUseCase,
   RequestPasswordResetUseCase,
-  ResetPasswordUseCase
+  ResetPasswordUseCase,
+  GenerateResetLinkUseCase
 } from './use-cases/auth';
 import { GetUserUseCase, GetUsersByRoleUseCase, UpdateProfileUseCase, ChangePasswordUseCase, DeleteUserUseCase } from './use-cases/user';
 import { CreateQuestionUseCase, UpdateQuestionUseCase, DeleteQuestionUseCase, GetQuestionByIdUseCase, GetAllQuestionsUseCase, SearchQuestionsUseCase } from './use-cases/question';
@@ -218,6 +219,7 @@ export function createApp(): Application {
   const logoutUseCase = container.resolve(LogoutUseCase);
   const requestPasswordResetUseCase = container.resolve(RequestPasswordResetUseCase);
   const resetPasswordUseCase = container.resolve(ResetPasswordUseCase);
+  const generateResetLinkUseCase = container.resolve(GenerateResetLinkUseCase);
   const getUserUseCase = container.resolve(GetUserUseCase);
   const getUsersByRoleUseCase = container.resolve(GetUsersByRoleUseCase);
   const updateProfileUseCase = container.resolve(UpdateProfileUseCase);
@@ -286,7 +288,8 @@ export function createApp(): Application {
     refreshTokenUseCase,
     logoutUseCase,
     requestPasswordResetUseCase,
-    resetPasswordUseCase
+    resetPasswordUseCase,
+    generateResetLinkUseCase
   ));
 
   app.use('/api/users', createUserController(

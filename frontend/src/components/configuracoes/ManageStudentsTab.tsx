@@ -1,5 +1,7 @@
 import { Button } from "../../components/ui/button";
 import { Checkbox } from "../../components/ui/checkbox";
+import { useState } from "react";
+
 
 interface Student {
   id: string;
@@ -23,6 +25,7 @@ interface ManageStudentsTabProps {
   onStudentToggle: (studentId: string) => void;
   onRemoveSelected: () => void;
   onManageClass?: (student: Student) => void;
+  onGenerateResetLink?: (userId: string) => Promise<string | null>;
 }
 
 export default function ManageStudentsTab({
@@ -37,7 +40,21 @@ export default function ManageStudentsTab({
   onStudentToggle,
   onRemoveSelected,
   onManageClass,
+  onGenerateResetLink,
 }: ManageStudentsTabProps) {
+  const [generatedLink, setGeneratedLink] = useState<{ userId: string; link: string } | null>(null);
+  const [isGenerating, setIsGenerating] = useState<string | null>(null);
+
+  const handleGenerateLink = async (userId: string) => {
+    if (!onGenerateResetLink) return;
+
+    setIsGenerating(userId);
+    const link = await onGenerateResetLink(userId);
+    if (link) {
+      setGeneratedLink({ userId, link });
+    }
+    setIsGenerating(null);
+  };
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
@@ -47,7 +64,7 @@ export default function ManageStudentsTab({
           </svg>
           Gerenciar Estudantes
         </h3>
-        
+
         <div className="mb-6">
           <label className="block text-sm font-semibold text-slate-900 mb-2">
             Buscar Estudantes
@@ -98,18 +115,66 @@ export default function ManageStudentsTab({
                         <span>Turma: {student.className || 'Sem turma'}</span>
                       </div>
                     </div>
-                    <Button
-                      onClick={() => onManageClass?.(student)}
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0 border-blue-300 text-blue-700 hover:bg-blue-50"
-                    >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                      Gerenciar Turma
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        onClick={() => onManageClass?.(student)}
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        Gerenciar Turma
+                      </Button>
+
+                      <Button
+                        onClick={() => handleGenerateLink(student.id)}
+                        disabled={isGenerating === student.id}
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-50"
+                      >
+                        {isGenerating === student.id ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent mr-1"></div>
+                        ) : (
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                          </svg>
+                        )}
+                        Gerar Link de Recuperação
+                      </Button>
+                    </div>
                   </div>
+
+                  {generatedLink?.userId === student.id && (
+                    <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                      <p className="text-sm font-semibold text-amber-900 mb-2">Link de recuperação gerado:</p>
+                      <div className="flex gap-2">
+                        <input
+                          readOnly
+                          value={generatedLink.link}
+                          className="flex-1 text-xs p-2 bg-white border border-amber-300 rounded-lg text-slate-700"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(generatedLink.link);
+                            alert('Link copiado para a área de transferência!');
+                          }}
+                        >
+                          Copiar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setGeneratedLink(null)}
+                        >
+                          Fechar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
