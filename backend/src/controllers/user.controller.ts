@@ -10,7 +10,7 @@ import { validateBody, authenticate, requireProfessor, AuthRequest } from '../mi
 import { successResponse } from '../utils/responses';
 import { UnauthorizedError } from '../utils';
 import { asyncHandler } from '../utils/asyncHandler';
-import { GetUserUseCase, GetUsersByRoleUseCase, UpdateProfileUseCase, ChangePasswordUseCase } from '../use-cases';
+import { GetUserUseCase, GetUsersByRoleUseCase, UpdateProfileUseCase, ChangePasswordUseCase, DeleteUserUseCase } from '../use-cases';
 
 /**
  * User Controller
@@ -41,101 +41,124 @@ function createUserController(
   getUserUseCase: GetUserUseCase,
   getUsersByRoleUseCase: GetUsersByRoleUseCase,
   updateProfileUseCase: UpdateProfileUseCase,
-  changePasswordUseCase: ChangePasswordUseCase
+  changePasswordUseCase: ChangePasswordUseCase,
+  deleteUserUseCase: DeleteUserUseCase
 ): Router {
   const router = Router();
 
-/**
- * GET /profile
- * Get current user profile
- */
-router.get(
-  '/profile',
-  authenticate,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    if (!req.user) {
-      throw new UnauthorizedError('User not authenticated', 'UNAUTHORIZED');
-    }
-    
-    const user = await getUserUseCase.execute(req.user.sub);
-    
-    successResponse(res, user, 'User profile');
-  })
-);
+  /**
+   * GET /profile
+   * Get current user profile
+   */
+  router.get(
+    '/profile',
+    authenticate,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      if (!req.user) {
+        throw new UnauthorizedError('User not authenticated', 'UNAUTHORIZED');
+      }
 
-/**
- * PUT /profile
- * Update current user profile information
- */
-router.put(
-  '/profile',
-  authenticate,
-  validateBody(UpdateProfileDTO),
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    if (!req.user) {
-      throw new UnauthorizedError('User not authenticated', 'UNAUTHORIZED');
-    }
-    
-    const user = await updateProfileUseCase.execute({ 
-      userId: req.user.sub, 
-      dto: req.body 
-    });
-    
-    successResponse(res, user, 'Profile updated successfully');
-  })
-);
+      const user = await getUserUseCase.execute(req.user.sub);
 
-/**
- * POST /change-password
- * Change user password
- */
-router.post(
-  '/change-password',
-  authenticate,
-  validateBody(ChangePasswordDTO),
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    if (!req.user) {
-      throw new UnauthorizedError('User not authenticated', 'UNAUTHORIZED');
-    }
-    
-    await changePasswordUseCase.execute({
-      userId: req.user.sub,
-      dto: req.body
-    });
-    
-    successResponse(res, null, 'Password changed successfully');
-  })
-);
+      successResponse(res, user, 'User profile');
+    })
+  );
 
-/**
- * GET /role/:role
- * Get users by role (professor only)
- */
-router.get(
-  '/role/:role',
-  authenticate,
-  requireProfessor,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    const users = await getUsersByRoleUseCase.execute(req.params.role);
-    
-    successResponse(res, users, 'Users by role');
-  })
-);
+  /**
+   * PUT /profile
+   * Update current user profile information
+   */
+  router.put(
+    '/profile',
+    authenticate,
+    validateBody(UpdateProfileDTO),
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      if (!req.user) {
+        throw new UnauthorizedError('User not authenticated', 'UNAUTHORIZED');
+      }
 
-/**
- * GET /:id
- * Get user profile by ID (professor only)
- */
-router.get(
-  '/:id',
-  authenticate,
-  requireProfessor,
-  asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
-    const user = await getUserUseCase.execute(req.params.id);
-    
-    successResponse(res, user, 'User data');
-  })
-);
+      const user = await updateProfileUseCase.execute({
+        userId: req.user.sub,
+        dto: req.body
+      });
+
+      successResponse(res, user, 'Profile updated successfully');
+    })
+  );
+
+  /**
+   * POST /change-password
+   * Change user password
+   */
+  router.post(
+    '/change-password',
+    authenticate,
+    validateBody(ChangePasswordDTO),
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      if (!req.user) {
+        throw new UnauthorizedError('User not authenticated', 'UNAUTHORIZED');
+      }
+
+      await changePasswordUseCase.execute({
+        userId: req.user.sub,
+        dto: req.body
+      });
+
+      successResponse(res, null, 'Password changed successfully');
+    })
+  );
+
+  /**
+   * GET /role/:role
+   * Get users by role (professor only)
+   */
+  router.get(
+    '/role/:role',
+    authenticate,
+    requireProfessor,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const users = await getUsersByRoleUseCase.execute(req.params.role);
+
+      successResponse(res, users, 'Users by role');
+    })
+  );
+
+  /**
+   * GET /:id
+   * Get user profile by ID (professor only)
+   */
+  router.get(
+    '/:id',
+    authenticate,
+    requireProfessor,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      const user = await getUserUseCase.execute(req.params.id);
+
+      successResponse(res, user, 'User data');
+    })
+  );
+
+  /**
+   * DELETE /:id
+   * Delete user (professor only)
+   */
+  router.delete(
+    '/:id',
+    authenticate,
+    requireProfessor,
+    asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+      if (!req.user) {
+        throw new UnauthorizedError('User not authenticated', 'UNAUTHORIZED');
+      }
+
+      await deleteUserUseCase.execute({
+        userIdToRemove: req.params.id,
+        currentUserId: req.user.sub
+      });
+
+      successResponse(res, null, 'User removed successfully');
+    })
+  );
 
   return router;
 }

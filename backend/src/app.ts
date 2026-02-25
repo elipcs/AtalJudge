@@ -44,7 +44,7 @@ import {
   RequestPasswordResetUseCase,
   ResetPasswordUseCase
 } from './use-cases/auth';
-import { GetUserUseCase, GetUsersByRoleUseCase, UpdateProfileUseCase, ChangePasswordUseCase } from './use-cases/user';
+import { GetUserUseCase, GetUsersByRoleUseCase, UpdateProfileUseCase, ChangePasswordUseCase, DeleteUserUseCase } from './use-cases/user';
 import { CreateQuestionUseCase, UpdateQuestionUseCase, DeleteQuestionUseCase, GetQuestionByIdUseCase, GetAllQuestionsUseCase, SearchQuestionsUseCase } from './use-cases/question';
 import { ImportQuestionsFromCsvUseCase } from './use-cases/question/ImportQuestionsFromCsvUseCase';
 import { CreateSubmissionUseCase, GetSubmissionUseCase, GetAllSubmissionsUseCase, GetSubmissionWithResultsUseCase, ResubmitSubmissionUseCase, SearchSubmissionsUseCase } from './use-cases/submission';
@@ -222,6 +222,7 @@ export function createApp(): Application {
   const getUsersByRoleUseCase = container.resolve(GetUsersByRoleUseCase);
   const updateProfileUseCase = container.resolve(UpdateProfileUseCase);
   const changePasswordUseCase = container.resolve(ChangePasswordUseCase);
+  const deleteUserUseCase = container.resolve(DeleteUserUseCase);
   const createQuestionUseCase = container.resolve(CreateQuestionUseCase);
   const updateQuestionUseCase = container.resolve(UpdateQuestionUseCase);
   const deleteQuestionUseCase = container.resolve(DeleteQuestionUseCase);
@@ -292,7 +293,8 @@ export function createApp(): Application {
     getUserUseCase,
     getUsersByRoleUseCase,
     updateProfileUseCase,
-    changePasswordUseCase
+    changePasswordUseCase,
+    deleteUserUseCase
   ));
 
   app.use('/api/invites', createInviteController(

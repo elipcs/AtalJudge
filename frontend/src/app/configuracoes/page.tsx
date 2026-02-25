@@ -8,6 +8,8 @@ import {
   ResetSystemTab,
   AllowedIPsTab,
   ManageStudentsTab,
+  ManageMonitorsTab,
+  ManageTeachersTab,
   ConfiguracoesError,
   ConfiguracoesSuccess
 } from "../../components/configuracoes";
@@ -49,6 +51,18 @@ export default function ConfiguracoesPage() {
     filteredStudents,
     toggleStudentSelection,
     loadStudents,
+    monitors,
+    selectedMonitors,
+    filteredMonitors,
+    loadMonitors,
+    toggleMonitorSelection,
+    removeSelectedMonitors,
+    teachers,
+    selectedTeachers,
+    filteredTeachers,
+    loadTeachers,
+    toggleTeacherSelection,
+    removeSelectedTeachers,
   } = useSettings();
 
   const [showClassModal, setShowClassModal] = useState(false);
@@ -83,11 +97,11 @@ export default function ConfiguracoesPage() {
       if (selectedStudent?.classId) {
         await API.classes.removeStudent(selectedStudent.classId, studentId);
       }
-      
+
       if (classId) {
         await API.classes.addStudent(classId, studentId);
       }
-      
+
       await loadStudents();
       setShowClassModal(false);
       setSelectedStudent(null);
@@ -98,9 +112,9 @@ export default function ConfiguracoesPage() {
 
   if (userRoleLoading) {
     return (
-      <PageLoading 
-        message="Carregando configurações..." 
-        description="Preparando as configurações do sistema" 
+      <PageLoading
+        message="Carregando configurações..."
+        description="Preparando as configurações do sistema"
       />
     );
   }
@@ -126,9 +140,9 @@ export default function ConfiguracoesPage() {
         iconColor="gray"
       />
 
-      <ConfiguracoesTabs 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
+      <ConfiguracoesTabs
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
       {activeTab === 'reset' && (
@@ -171,7 +185,7 @@ export default function ConfiguracoesPage() {
             onRemoveSelected={removeSelectedStudents}
             onManageClass={handleManageClass}
           />
-          
+
           <ManageStudentClassModal
             isOpen={showClassModal}
             student={selectedStudent}
@@ -183,6 +197,36 @@ export default function ConfiguracoesPage() {
             onSave={handleSaveStudentClass}
           />
         </>
+      )}
+
+      {activeTab === 'monitors' && (
+        <ManageMonitorsTab
+          monitors={monitors}
+          filteredMonitors={filteredMonitors}
+          selectedMonitors={selectedMonitors}
+          searchTerm={searchTerm}
+          saving={saving}
+          loading={loading}
+          buttonSuccess={buttonSuccess}
+          onSearchChange={setSearchTerm}
+          onMonitorToggle={toggleMonitorSelection}
+          onRemoveSelected={removeSelectedMonitors}
+        />
+      )}
+
+      {activeTab === 'teachers' && (
+        <ManageTeachersTab
+          teachers={teachers}
+          filteredTeachers={filteredTeachers}
+          selectedTeachers={selectedTeachers}
+          searchTerm={searchTerm}
+          saving={saving}
+          loading={loading}
+          buttonSuccess={buttonSuccess}
+          onSearchChange={setSearchTerm}
+          onTeacherToggle={toggleTeacherSelection}
+          onRemoveSelected={removeSelectedTeachers}
+        />
       )}
 
       <ConfiguracoesError error={error} onClose={clearError} />

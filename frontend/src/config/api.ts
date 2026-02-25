@@ -312,6 +312,7 @@ export const API = {
     updateProfile: (data: Partial<UserResponseDTO>) => put<UserResponseDTO>('/users/profile', data),
     changePassword: (data: { currentPassword: string; newPassword: string }) => post<null>('/users/change-password', data),
     listByRole: (role: string) => get<UserResponseDTO[]>(`/users/role/${role}`),
+    delete: (id: string) => del<null>(`/users/${id}`),
   },
 
   classes: {

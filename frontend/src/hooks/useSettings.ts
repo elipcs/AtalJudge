@@ -59,6 +59,10 @@ export function useSettings() {
 
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [monitors, setMonitors] = useState<Student[]>([]);
+  const [selectedMonitors, setSelectedMonitors] = useState<string[]>([]);
+  const [teachers, setTeachers] = useState<Student[]>([]);
+  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   const loadAllowedIPs = useCallback(async () => {
@@ -80,10 +84,10 @@ export function useSettings() {
       setLoading(true);
       const response = await API.config.getStudents();
       let list = Array.isArray(response.data) ? response.data : [];
-      
+
       try {
         const classes = await classesApi.getAll(true);
-        
+
         const studentClassMap = new Map<string, { classId: string; className: string }>();
         classes.forEach(cls => {
           if (cls.students && Array.isArray(cls.students)) {
@@ -95,7 +99,7 @@ export function useSettings() {
             });
           }
         });
-        
+
         list = list.map(student => ({
           ...student,
           classId: student.classId || studentClassMap.get(student.id)?.classId,
@@ -103,10 +107,34 @@ export function useSettings() {
         }));
       } catch (enrichError) {
       }
-      
+
       setStudents(list);
     } catch (_error) {
       setError('Erro ao carregar estudantes');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadMonitors = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await API.users.listByRole('assistant');
+      setMonitors(response.data || []);
+    } catch (_error) {
+      setError('Erro ao carregar monitores');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadTeachers = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await API.users.listByRole('professor');
+      setTeachers(response.data || []);
+    } catch (_error) {
+      setError('Erro ao carregar professores');
     } finally {
       setLoading(false);
     }
@@ -117,8 +145,12 @@ export function useSettings() {
       await loadAllowedIPs();
     } else if (activeTab === 'students') {
       await loadStudents();
+    } else if (activeTab === 'monitors') {
+      await loadMonitors();
+    } else if (activeTab === 'teachers') {
+      await loadTeachers();
     }
-  }, [activeTab, loadAllowedIPs, loadStudents]);
+  }, [activeTab, loadAllowedIPs, loadStudents, loadMonitors, loadTeachers]);
 
   useEffect(() => {
     loadData();
@@ -133,7 +165,7 @@ export function useSettings() {
     try {
       setSaving(true);
       setButtonSuccess(false);
-      
+
       await API.config.systemReset({
         resetSubmissions: systemReset.resetSubmissions,
         resetStudents: systemReset.resetStudents,
@@ -158,7 +190,7 @@ export function useSettings() {
         resetAllowedIPs: false,
         confirmationText: ''
       });
-      
+
       setTimeout(() => setButtonSuccess(false), 3000);
     } catch (_error) {
       setError(_error instanceof Error ? _error.message : 'Erro ao realizar reset');
@@ -220,14 +252,14 @@ export function useSettings() {
     try {
       setSaving(true);
       setButtonSuccess(false);
-      
+
       await API.config.removeStudents(selectedStudents);
 
       setButtonSuccess(true);
       setSuccess(`${selectedStudents.length} estudante(s) removido(s) com sucesso!`);
       setSelectedStudents([]);
       await loadStudents();
-      
+
       setTimeout(() => setButtonSuccess(false), 3000);
     } catch (_error) {
       setError(_error instanceof Error ? _error.message : 'Erro ao remover estudantes');
@@ -235,6 +267,60 @@ export function useSettings() {
       setSaving(false);
     }
   }, [selectedStudents, loadStudents]);
+
+  const removeSelectedMonitors = useCallback(async () => {
+    if (selectedMonitors.length === 0) {
+      setError('Selecione pelo menos um monitor');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setButtonSuccess(false);
+
+      for (const id of selectedMonitors) {
+        await API.users.delete(id);
+      }
+
+      setButtonSuccess(true);
+      setSuccess(`${selectedMonitors.length} monitor(es) removido(s) com sucesso!`);
+      setSelectedMonitors([]);
+      await loadMonitors();
+
+      setTimeout(() => setButtonSuccess(false), 3000);
+    } catch (_error) {
+      setError(_error instanceof Error ? _error.message : 'Erro ao remover monitores');
+    } finally {
+      setSaving(false);
+    }
+  }, [selectedMonitors, loadMonitors]);
+
+  const removeSelectedTeachers = useCallback(async () => {
+    if (selectedTeachers.length === 0) {
+      setError('Selecione pelo menos um professor');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setButtonSuccess(false);
+
+      for (const id of selectedTeachers) {
+        await API.users.delete(id);
+      }
+
+      setButtonSuccess(true);
+      setSuccess(`${selectedTeachers.length} professor(es) removido(s) com sucesso!`);
+      setSelectedTeachers([]);
+      await loadTeachers();
+
+      setTimeout(() => setButtonSuccess(false), 3000);
+    } catch (_error) {
+      setError(_error instanceof Error ? _error.message : 'Erro ao remover professores');
+    } finally {
+      setSaving(false);
+    }
+  }, [selectedTeachers, loadTeachers]);
 
   const clearError = useCallback(() => setError(null), []);
   const clearSuccess = useCallback(() => setSuccess(null), []);
@@ -244,6 +330,16 @@ export function useSettings() {
     student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.studentRegistration?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.className?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredMonitors = monitors.filter(monitor =>
+    monitor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    monitor.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredTeachers = teachers.filter(teacher =>
+    teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const setSystemResetField = useCallback((field: keyof SystemReset, value: boolean | string) => {
@@ -282,10 +378,26 @@ export function useSettings() {
   }, []);
 
   const toggleStudentSelection = useCallback((studentId: string) => {
-    setSelectedStudents(prev => 
-      prev.includes(studentId) 
+    setSelectedStudents(prev =>
+      prev.includes(studentId)
         ? prev.filter(id => id !== studentId)
         : [...prev, studentId]
+    );
+  }, []);
+
+  const toggleMonitorSelection = useCallback((monitorId: string) => {
+    setSelectedMonitors(prev =>
+      prev.includes(monitorId)
+        ? prev.filter(id => id !== monitorId)
+        : [...prev, monitorId]
+    );
+  }, []);
+
+  const toggleTeacherSelection = useCallback((teacherId: string) => {
+    setSelectedTeachers(prev =>
+      prev.includes(teacherId)
+        ? prev.filter(id => id !== teacherId)
+        : [...prev, teacherId]
     );
   }, []);
 
@@ -306,18 +418,30 @@ export function useSettings() {
     setNewIP,
     students,
     selectedStudents,
+    monitors,
+    selectedMonitors,
+    teachers,
+    selectedTeachers,
     searchTerm,
     setSearchTerm,
     loadAllowedIPs,
     loadStudents,
+    loadMonitors,
+    loadTeachers,
     performSystemReset,
     addAllowedIP,
     toggleIP,
     removeIP,
     removeSelectedStudents,
+    removeSelectedMonitors,
+    removeSelectedTeachers,
     clearError,
     clearSuccess,
     filteredStudents,
+    filteredMonitors,
+    filteredTeachers,
     toggleStudentSelection,
+    toggleMonitorSelection,
+    toggleTeacherSelection,
   };
 }

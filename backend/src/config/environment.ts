@@ -132,6 +132,16 @@ export function validateConfig(): void {
     errors.push('JUDGE0_URL not configured');
   }
 
+  // Email validation in production
+  if (config.nodeEnv === 'production') {
+    if (!config.email.username || !config.email.password) {
+      console.warn('WARNING: MAIL_USERNAME or MAIL_PASSWORD not defined. Email service might not work.');
+    }
+    if (!process.env.FRONTEND_URL) {
+      console.warn('WARNING: FRONTEND_URL not defined. Using default "http://localhost:3000". Reset links might be incorrect.');
+    }
+  }
+
   if (errors.length > 0) {
     throw new Error(`Configuration errors:\n${errors.map(e => `  - ${e}`).join('\n')}`);
   }
