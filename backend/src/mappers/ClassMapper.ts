@@ -40,6 +40,7 @@ export class ClassMapper {
         name: s.name,
         email: s.email,
         role: s.role,
+        studentRegistration: s.studentRegistration,
         createdAt: s.createdAt.toISOString()
       })),
       studentCount: classEntity.students?.length || 0,
