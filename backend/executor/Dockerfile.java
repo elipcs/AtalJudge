@@ -1,7 +1,7 @@
-FROM node:18-alpine
+FROM node:18-alpine3.20
 
-# Install Java (OpenJDK 17) and GNU time
-RUN apk add --no-cache openjdk17 time
+# Install Java (OpenJDK 17)
+RUN apk add --no-cache openjdk17
 
 WORKDIR /app
 

@@ -82,23 +82,32 @@ app.post('/run', async (req, res) => {
 
         const startTime = process.hrtime();
 
-        const timeOutputFile = path.join(workDir, 'time.txt');
-        const timedArgs = [
-            '-v',
-            '-o', timeOutputFile,
-            spawnCmd,
-            ...spawnArgs
-        ];
-
-        const child = spawn('/usr/bin/time', timedArgs, {
+        const child = spawn(spawnCmd, spawnArgs, {
             cwd: workDir,
             env: { ...process.env, PYTHONUNBUFFERED: "1" } // Ensure unbuffered output
         });
 
-        console.log(`[Executor] Started timed execution: /usr/bin/time ${timedArgs.join(' ')} (runId: ${runId})`);
+        console.log(`[Executor] Started execution: ${spawnCmd} ${spawnArgs.join(' ')} (runId: ${runId})`);
 
         let stdout = '';
         let stderr = '';
+        let peakMemoryKb = 0;
+
+        // Memory polling (Linux peak RSS via /proc)
+        const memoryInterval = setInterval(() => {
+            if (child.pid) {
+                try {
+                    const statusContent = fs.readFileSync(`/proc/${child.pid}/status`, 'utf8');
+                    const match = statusContent.match(/VmHWM:\s+(\d+)\s+kB/);
+                    if (match) {
+                        const currentPeak = parseInt(match[1], 10);
+                        if (currentPeak > peakMemoryKb) peakMemoryKb = currentPeak;
+                    }
+                } catch (e) {
+                    // Process likely finished
+                }
+            }
+        }, 50);
 
         // Handle stdin
         if (stdin) {
@@ -120,26 +129,14 @@ app.post('/run', async (req, res) => {
 
         child.on('close', (code) => {
             clearTimeout(timer);
+            clearInterval(memoryInterval);
+
             const [seconds, nanoseconds] = process.hrtime(startTime);
             let timeInSeconds = seconds + nanoseconds / 1e9;
 
             // Subtract startup offset for Java to be fair
             if (language === 'java') {
                 timeInSeconds = Math.max(0, timeInSeconds - javaStartupOffset);
-            }
-
-            // Parse memory usage from time output
-            let memoryKb = 0;
-            try {
-                if (fs.existsSync(timeOutputFile)) {
-                    const timeOutput = fs.readFileSync(timeOutputFile, 'utf8');
-                    const match = timeOutput.match(/Maximum resident set size \(kbytes\): (\d+)/);
-                    if (match) {
-                        memoryKb = parseInt(match[1], 10);
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to parse time output', err);
             }
 
             // Cleanup
@@ -154,7 +151,7 @@ app.post('/run', async (req, res) => {
                 stderr,
                 exitCode: code,
                 time: timeInSeconds,
-                memory: memoryKb
+                memory: peakMemoryKb
             });
         });
 
