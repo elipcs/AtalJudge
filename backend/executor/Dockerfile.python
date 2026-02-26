@@ -1,7 +1,7 @@
 FROM node:18-alpine
 
-# Install Python
-RUN apk add --no-cache python3
+# Install Python and GNU time
+RUN apk add --no-cache python3 time
 
 WORKDIR /app
 

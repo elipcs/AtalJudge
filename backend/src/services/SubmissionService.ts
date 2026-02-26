@@ -592,7 +592,10 @@ export class SubmissionService {
       executionTimeMs: result.executionTimeMs,
       memoryUsedKb: result.memoryUsedKb,
       actualOutput: result.output,
-      errorMessage: result.errorMessage
+      errorMessage: result.errorMessage,
+      isHidden: result.testCase?.isHidden || false,
+      input: result.testCase?.input,
+      expectedOutput: result.testCase?.expectedOutput
     }));
 
     logger.info('Submission details compiled', {

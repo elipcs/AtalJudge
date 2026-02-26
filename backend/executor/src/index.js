@@ -45,7 +45,7 @@ app.post('/run', async (req, res) => {
         const timeLimit = req.body.cpuTimeLimit || defaultTimeLimit;
         const timeoutMs = Math.ceil(timeLimit * 1000);
 
-        const javaStartupOffset = process.env.JAVA_STARTUP_OFFSET ? parseFloat(process.env.JAVA_STARTUP_OFFSET) : 0.5;
+        const javaStartupOffset = process.env.JAVA_STARTUP_OFFSET ? parseFloat(process.env.JAVA_STARTUP_OFFSET) : 1.0;
         const absoluteTimeoutMs = language === 'java' ? timeoutMs + Math.ceil(javaStartupOffset * 1000) : timeoutMs;
 
         // Compilation for Java
@@ -54,8 +54,15 @@ app.post('/run', async (req, res) => {
                 await new Promise((resolve, reject) => {
                     const compile = spawn('javac', ['Main.java'], { cwd: workDir });
                     let compileStderr = '';
+
+                    const compileTimer = setTimeout(() => {
+                        compile.kill('SIGKILL');
+                        reject('Compilation timeout (10s)');
+                    }, 10000);
+
                     compile.stderr.on('data', (data) => compileStderr += data.toString());
                     compile.on('close', (code) => {
+                        clearTimeout(compileTimer);
                         if (code !== 0) reject(compileStderr);
                         else resolve();
                     });
@@ -75,10 +82,20 @@ app.post('/run', async (req, res) => {
 
         const startTime = process.hrtime();
 
-        const child = spawn(spawnCmd, spawnArgs, {
+        const timeOutputFile = path.join(workDir, 'time.txt');
+        const timedArgs = [
+            '-v',
+            '-o', timeOutputFile,
+            spawnCmd,
+            ...spawnArgs
+        ];
+
+        const child = spawn('/usr/bin/time', timedArgs, {
             cwd: workDir,
             env: { ...process.env, PYTHONUNBUFFERED: "1" } // Ensure unbuffered output
         });
+
+        console.log(`[Executor] Started timed execution: /usr/bin/time ${timedArgs.join(' ')} (runId: ${runId})`);
 
         let stdout = '';
         let stderr = '';
@@ -111,6 +128,20 @@ app.post('/run', async (req, res) => {
                 timeInSeconds = Math.max(0, timeInSeconds - javaStartupOffset);
             }
 
+            // Parse memory usage from time output
+            let memoryKb = 0;
+            try {
+                if (fs.existsSync(timeOutputFile)) {
+                    const timeOutput = fs.readFileSync(timeOutputFile, 'utf8');
+                    const match = timeOutput.match(/Maximum resident set size \(kbytes\): (\d+)/);
+                    if (match) {
+                        memoryKb = parseInt(match[1], 10);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to parse time output', err);
+            }
+
             // Cleanup
             try {
                 fs.rmSync(workDir, { recursive: true, force: true });
@@ -123,7 +154,7 @@ app.post('/run', async (req, res) => {
                 stderr,
                 exitCode: code,
                 time: timeInSeconds,
-                memory: 0 // Placeholder
+                memory: memoryKb
             });
         });
 

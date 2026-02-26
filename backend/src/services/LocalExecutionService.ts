@@ -140,7 +140,7 @@ export class LocalExecutionService {
             percentage: number;
             statuses: Judge0StatusResponse[];
         }) => Promise<void>,
-        maxAttempts: number = 30, // Kept for interface compatibility, but we might not need to poll as hard locally 
+        maxAttempts: number = 120, // Increased to 1 minute to account for Java compilation/overhead
         intervalMs: number = 500
     ): Promise<Judge0StatusResponse[]> {
         const startTime = Date.now();

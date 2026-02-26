@@ -19,15 +19,27 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    
+
     this.transporter = nodemailer.createTransport({
       host: config.email.host,
       port: config.email.port,
-      secure: config.email.port === 465, 
+      secure: config.email.port === 465,
       auth: config.email.username && config.email.password ? {
         user: config.email.username,
         pass: config.email.password,
       } : undefined,
+      tls: {
+
+        rejectUnauthorized: config.nodeEnv === 'production',
+      }
+    });
+
+    logger.debug('[EMAIL] Initializing EmailService', {
+      host: config.email.host,
+      port: config.email.port,
+      secure: config.email.port === 465,
+      user: config.email.username ? '(set)' : '(not set)',
+      from: config.email.from
     });
 
     if (config.nodeEnv === 'development') {
@@ -43,7 +55,7 @@ export class EmailService {
 
   async sendPasswordResetEmail(email: string, name: string, resetToken: string): Promise<void> {
     const resetUrl = `${config.frontendUrl}/reset-senha?token=${resetToken}`;
-    
+
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="pt-BR">
@@ -177,9 +189,15 @@ This is an automated email, please do not reply.
 
       logger.info('[EMAIL] Password reset email sent successfully', { email });
     } catch (error) {
-      logger.error('[EMAIL] Error sending password reset email', { 
-        email, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      logger.error('[EMAIL] Error sending password reset email', {
+        email,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        config: {
+          host: config.email.host,
+          port: config.email.port,
+          from: config.email.from
+        }
       });
       throw new Error('Error sending email. Please try again later.');
     }
@@ -301,12 +319,16 @@ Este é um email automático, por favor não responda.
 
       logger.info('[EMAIL] Email de confirmação de reset enviado com sucesso', { email });
     } catch (error) {
-      logger.error('[EMAIL] Erro ao enviar email de confirmação', { 
-        email, 
-        error: error instanceof Error ? error.message : 'Erro desconhecido' 
+      logger.error('[EMAIL] Error sending confirmation email', {
+        email,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        config: {
+          host: config.email.host,
+          port: config.email.port,
+          from: config.email.from
+        }
       });
-      
     }
   }
 }
-

@@ -118,7 +118,7 @@ export class SandboxFusionService {
             percentage: number;
             statuses: Judge0StatusResponse[];
         }) => Promise<void>,
-        maxAttempts: number = 30,
+        maxAttempts: number = 120, // Increased to 60s
         intervalMs: number = 500
     ): Promise<Judge0StatusResponse[]> {
         const startTime = Date.now();
@@ -245,11 +245,11 @@ export class SandboxFusionService {
 
             logger.info(`[SandboxFusion-HTTP] Posting to ${endpoint}`);
 
-            // Calculate timeout with buffer (Time Limit + 5s for compilation/overhead)
+            // Calculate timeout with buffer (Time Limit + 15s for compilation/overhead)
             // Default: Java 3s, Python 2s if not specified
             const defaultLimit = language === ProgrammingLanguage.JAVA ? 3 : 2;
             const cpuLimit = limits?.cpuTimeLimit || defaultLimit;
-            const axiosTimeout = (cpuLimit * 1000) + 5000;
+            const axiosTimeout = (cpuLimit * 1000) + 15000;
 
             const response = await axios.post(endpoint, payload, {
                 timeout: axiosTimeout
@@ -286,7 +286,7 @@ export class SandboxFusionService {
                 stdout: result.stdout,
                 stderr: result.stderr,
                 time: result.time?.toFixed(3),
-                memory: 0
+                memory: result.memory || 0
             });
 
         } catch (error: any) {

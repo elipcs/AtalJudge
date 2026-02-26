@@ -330,8 +330,8 @@ export default function SubmissionStatusModal({
               <div className="space-y-3 animate-in slide-in-from-bottom-2 duration-300">
                 <div
                   className={`p-4 rounded-lg border-2 shadow-sm ${results.passedTests === results.totalTests
-                      ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-300"
-                      : "bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-300"
+                    ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-300"
+                    : "bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-300"
                     }`}
                 >
                   <div className="flex items-center justify-between mb-3">
@@ -395,8 +395,8 @@ export default function SubmissionStatusModal({
                       <div
                         key={result.testCaseId || index}
                         className={`p-3 rounded-lg border shadow-sm ${result.passed
-                            ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
-                            : "bg-gradient-to-br from-red-50 to-orange-50 border-red-200"
+                          ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
+                          : "bg-gradient-to-br from-red-50 to-orange-50 border-red-200"
                           }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
@@ -406,8 +406,8 @@ export default function SubmissionStatusModal({
                           <div className="flex items-center gap-1.5">
                             <span
                               className={`text-xs font-bold px-2 py-0.5 rounded ${result.passed
-                                  ? "bg-green-200 text-green-800 border border-green-300"
-                                  : "bg-red-200 text-red-800 border border-red-300"
+                                ? "bg-green-200 text-green-800 border border-green-300"
+                                : "bg-red-200 text-red-800 border border-red-300"
                                 }`}
                             >
                               {result.passed ? "✓ Passou" : "✗ Falhou"}
@@ -425,42 +425,38 @@ export default function SubmissionStatusModal({
                           )}
                         </div>
 
-                        {result.isHidden ? (
-                          <div className="mt-2 text-xs italic text-slate-500 bg-slate-100 p-2 rounded border border-slate-200 text-center">
-                            Detalhes de entrada e saída deste caso de teste estão ocultos.
+                        {!result.isHidden && result.input && (
+                          <div className="mt-2">
+                            <p className="text-xs font-semibold text-slate-700 mb-1">Entrada:</p>
+                            <pre className="text-xs bg-slate-100 border border-slate-200 p-2 rounded font-mono overflow-x-auto max-h-20">
+                              {result.input}
+                            </pre>
                           </div>
-                        ) : (
-                          <>
-                            {result.input && (
-                              <div className="mt-2">
-                                <p className="text-xs font-semibold text-slate-700 mb-1">Entrada:</p>
-                                <pre className="text-xs bg-slate-100 border border-slate-200 p-2 rounded font-mono overflow-x-auto max-h-20">
-                                  {result.input}
-                                </pre>
-                              </div>
-                            )}
+                        )}
 
-                            {result.expectedOutput && (
-                              <div className="mt-2">
-                                <p className="text-xs font-semibold text-slate-700 mb-1">Saída Esperada:</p>
-                                <pre className="text-xs bg-slate-100 border border-slate-200 p-2 rounded font-mono overflow-x-auto max-h-20">
-                                  {result.expectedOutput}
-                                </pre>
-                              </div>
-                            )}
+                        {!result.isHidden && result.expectedOutput && (
+                          <div className="mt-2">
+                            <p className="text-xs font-semibold text-slate-700 mb-1">Saída Esperada:</p>
+                            <pre className="text-xs bg-slate-100 border border-slate-200 p-2 rounded font-mono overflow-x-auto max-h-20">
+                              {result.expectedOutput}
+                            </pre>
+                          </div>
+                        )}
 
-                            {result.actualOutput && (
-                              <div className="mt-2">
-                                <p className="text-xs font-semibold text-slate-700 mb-1">Sua Saída:</p>
-                                <pre className={`text-xs p-2 rounded font-mono overflow-x-auto max-h-20 border ${result.passed
-                                    ? "bg-green-100 border-green-200"
-                                    : "bg-red-100 border-red-200"
-                                  }`}>
-                                  {result.actualOutput}
-                                </pre>
-                              </div>
-                            )}
-                          </>
+                        <div className="mt-2">
+                          <p className="text-xs font-semibold text-slate-700 mb-1">Sua Saída:</p>
+                          <pre className={`text-xs p-2 rounded font-mono overflow-x-auto max-h-20 border ${result.passed
+                            ? "bg-green-100 border-green-200"
+                            : "bg-red-100 border-red-200"
+                            }`}>
+                            {result.actualOutput || (result.passed ? "" : "(vazia)")}
+                          </pre>
+                        </div>
+
+                        {result.isHidden && (
+                          <div className="mt-2 text-[10px] italic text-slate-400">
+                            * Entrada e saída esperada ocultas para este caso.
+                          </div>
                         )}
 
                         {result.errorMessage && (
