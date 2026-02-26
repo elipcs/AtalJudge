@@ -67,7 +67,7 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
       const timeoutId = setTimeout(() => {
         validateDatesInRealTime();
       }, 300);
-      
+
       return () => clearTimeout(timeoutId);
     } else {
       setErrors({
@@ -99,11 +99,11 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
     if (form.startDate && form.endDate) {
       const startDateISO = fromBrazilianDateTimeLocal(form.startDate);
       const endDateISO = fromBrazilianDateTimeLocal(form.endDate);
-      
+
       if (startDateISO && endDateISO) {
         const startDate = new Date(startDateISO);
         const endDate = new Date(endDateISO);
-        
+
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
           newErrors.dateRange = 'Datas inválidas';
         } else if (endDate <= startDate) {
@@ -138,11 +138,11 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
     if (form.startDate && form.endDate) {
       const startDateISO = fromBrazilianDateTimeLocal(form.startDate);
       const endDateISO = fromBrazilianDateTimeLocal(form.endDate);
-      
+
       if (startDateISO && endDateISO) {
         const startDate = new Date(startDateISO);
         const endDate = new Date(endDateISO);
-        
+
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
           newErrors.dateRange = 'Datas inválidas';
         } else if (endDate <= startDate) {
@@ -155,9 +155,9 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
 
   const isFormValid = () => {
     if (!form.title.trim()) return false;
-    
+
     if (form.classIds.length === 0) return false;
-    
+
     if (hasStarted) {
       if (!form.endDate) return false;
       const endDateISO = fromBrazilianDateTimeLocal(form.endDate);
@@ -179,7 +179,7 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!form.title.trim()) {
       return;
     }
@@ -191,10 +191,10 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
     try {
       setLoading(true);
       setErrorMessage('');
-      
+
       const now = new Date();
       const defaultEndDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      
+
       const startDate = hasStarted
         ? (listData?.startDate || now.toISOString())
         : (form.startDate ? fromBrazilianDateTimeLocal(form.startDate) : now.toISOString());
@@ -214,9 +214,9 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
       };
 
       await onSubmit(payload);
-      
+
       setShowSuccessMessage(true);
-      
+
       setTimeout(async () => {
         setForm({
           title: '',
@@ -227,9 +227,9 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
           countTowardScore: false,
           isRestricted: false
         });
-        
+
         onClose();
-        
+
         if (onRefresh) {
           await onRefresh();
         }
@@ -264,7 +264,7 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) {
@@ -321,15 +321,15 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
           )}
 
           {isClosed && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
               <div className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div>
-                  <p className="text-sm font-semibold text-red-900 mb-1">Lista Fechada</p>
-                  <p className="text-xs text-red-700">
-                    Esta lista está fechada e não pode mais ser editada. Apenas visualização permitida.
+                  <p className="text-sm font-semibold text-amber-900 mb-1">Lista Fechada</p>
+                  <p className="text-xs text-amber-700">
+                    Esta lista já passou do prazo final. Você pode estender o prazo alterando a "Data de Fim" abaixo.
                   </p>
                 </div>
               </div>
@@ -346,14 +346,12 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                 value={form.title}
                 onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Digite o título da lista"
-                disabled={loading || isClosed}
+                disabled={loading}
                 required
-                className={`w-full h-12 px-4 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
-                  isClosed ? 'bg-slate-100' : 'bg-white'
-                }`}
+                className={`w-full h-12 px-4 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all bg-white`}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Descrição
@@ -362,14 +360,12 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                 value={form.description}
                 onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Digite a descrição da lista"
-                className={`w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all resize-none ${
-                  isClosed ? 'bg-slate-100' : 'bg-white'
-                }`}
+                className={`w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all resize-none bg-white`}
                 rows={3}
-                disabled={loading || isClosed}
+                disabled={loading}
               />
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -379,18 +375,17 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                   type="datetime-local"
                   value={form.startDate}
                   onChange={(e) => handleDateChange('startDate', e.target.value)}
-                  disabled={loading || hasStarted || isClosed}
-                  className={`w-full h-12 px-4 border rounded-xl focus:outline-none focus:ring-2 text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
-                    errors.startDate 
-                      ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' 
+                  disabled={loading || hasStarted}
+                  className={`w-full h-12 px-4 border rounded-xl focus:outline-none focus:ring-2 text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${errors.startDate
+                      ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20'
                       : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
-                  } ${hasStarted || isClosed ? 'bg-slate-100' : 'bg-white'}`}
+                    } ${hasStarted ? 'bg-slate-100' : 'bg-white'}`}
                 />
                 {errors.startDate && (
                   <p className="mt-1.5 text-xs text-red-600">{errors.startDate}</p>
                 )}
               </div>
-              
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Data de Fim
@@ -399,12 +394,11 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                   type="datetime-local"
                   value={form.endDate}
                   onChange={(e) => handleDateChange('endDate', e.target.value)}
-                  disabled={loading || isClosed}
-                  className={`w-full h-12 px-4 border rounded-xl focus:outline-none focus:ring-2 text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
-                    errors.endDate 
-                      ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20' 
+                  disabled={loading}
+                  className={`w-full h-12 px-4 border rounded-xl focus:outline-none focus:ring-2 text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${errors.endDate
+                      ? 'border-red-300 focus:border-red-400 focus:ring-red-400/20'
                       : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
-                  } ${isClosed ? 'bg-slate-100' : 'bg-white'}`}
+                    } bg-white`}
                 />
                 {errors.endDate && (
                   <p className="mt-1.5 text-xs text-red-600">{errors.endDate}</p>
@@ -448,7 +442,7 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                       const allIds = Array.isArray(classes) ? classes.map(c => c.id) : [];
                       setForm(prev => ({ ...prev, classIds: allIds }));
                     }}
-                    disabled={loading || hasStarted || isClosed}
+                    disabled={loading || hasStarted}
                     className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Selecionar Todas
@@ -458,14 +452,14 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                     onClick={() => {
                       setForm(prev => ({ ...prev, classIds: [] }));
                     }}
-                    disabled={loading || hasStarted || isClosed}
+                    disabled={loading || hasStarted}
                     className="text-xs text-slate-600 hover:text-slate-800 font-medium px-2 py-1 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Limpar
                   </button>
                 </div>
               </div>
-              
+
               <div className="border border-slate-300 rounded-xl p-4 max-h-40 overflow-y-auto bg-slate-50">
                 {classes.length === 0 ? (
                   <div className="text-center py-4 text-slate-500 text-sm">
@@ -484,7 +478,7 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                               setForm(prev => ({ ...prev, classIds: prev.classIds.filter(id => id !== cls.id) }));
                             }
                           }}
-                          disabled={loading || hasStarted || isClosed}
+                          disabled={loading || hasStarted}
                           className="mr-3"
                           variant="text"
                         />
@@ -496,7 +490,7 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                   </div>
                 )}
               </div>
-              
+
               {hasStarted && (
                 <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                   <p className="text-sm text-blue-700">As turmas não podem ser alteradas porque a lista já começou. Só é possível editar título, descrição e data de término.</p>
@@ -532,50 +526,49 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                   </div>
                 </div>
               )}
-              
+
               <div className="mt-4 border-t border-slate-200 pt-4 space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <Checkbox
                     checked={form.countTowardScore}
                     onChange={(e) => setForm(prev => ({ ...prev, countTowardScore: e.target.checked }))}
-                    disabled={loading || isClosed}
+                    disabled={loading}
                     className="mr-2"
                     variant="text"
                   />
-                  <span className={`text-sm font-medium ${isClosed ? 'text-slate-500' : 'text-slate-700'}`}>Esta lista conta para a nota</span>
+                  <span className={`text-sm font-medium text-slate-700`}>Esta lista conta para a nota</span>
                 </label>
-                
+
                 <label className="flex items-center gap-3 cursor-pointer">
                   <Checkbox
                     checked={form.isRestricted}
                     onChange={(e) => setForm(prev => ({ ...prev, isRestricted: e.target.checked }))}
-                    disabled={loading || isClosed}
+                    disabled={loading}
                     className="mr-2"
                     variant="text"
                   />
-                  <span className={`text-sm font-medium ${isClosed ? 'text-slate-500' : 'text-slate-700'}`}>Restringir acesso por IP</span>
+                  <span className={`text-sm font-medium text-slate-700`}>Restringir acesso por IP</span>
                 </label>
               </div>
             </div>
 
             <div className="flex gap-3 pt-6 border-t border-slate-200">
-              <button 
+              <button
                 type="button"
-                onClick={handleClose} 
+                onClick={handleClose}
                 disabled={loading || showSuccessMessage}
                 className="flex-1 h-12 px-4 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>
-              
-              <button 
+
+              <button
                 type="submit"
-                disabled={loading || !isFormValid() || showSuccessMessage || isClosed}
-                className={`flex-1 h-12 px-4 text-sm font-semibold text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all disabled:cursor-not-allowed ${
-                  showSuccessMessage
+                disabled={loading || !isFormValid() || showSuccessMessage}
+                className={`flex-1 h-12 px-4 text-sm font-semibold text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all disabled:cursor-not-allowed ${showSuccessMessage
                     ? "bg-green-500 hover:bg-green-600 focus:ring-green-500"
                     : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:ring-blue-500 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 shadow-lg hover:shadow-xl"
-                }`}
+                  }`}
               >
                 {showSuccessMessage ? (
                   <span className="flex items-center justify-center gap-2">
@@ -589,8 +582,6 @@ export default function EditListModal({ isOpen, onClose, onSubmit, onRefresh, cl
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                     Atualizando...
                   </span>
-                ) : isClosed ? (
-                  'Lista Fechada - Não Pode Ser Editada'
                 ) : (
                   'Atualizar Lista'
                 )}

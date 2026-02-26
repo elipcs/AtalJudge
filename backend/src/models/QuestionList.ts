@@ -94,11 +94,11 @@ export class QuestionList {
     if (now < this.startDate) {
       return 'next';
     }
-    
+
     if (now > this.endDate) {
       return 'closed';
     }
-    
+
     return 'open';
   }
 
@@ -150,12 +150,12 @@ export class QuestionList {
     if (this.scoringMode === 'simple') {
       return this.maxScore;
     }
-    
+
     // Groups mode
     if (!this.questionGroups || this.questionGroups.length === 0) {
       return this.maxScore;
     }
-    
+
     return this.questionGroups.reduce((sum, group) => sum + group.weight, 0);
   }
 
@@ -210,7 +210,7 @@ export class QuestionList {
    * (Cannot edit lists that are already closed)
    */
   canBeEdited(): boolean {
-    return !this.isClosed();
+    return true;
   }
 
   /**
@@ -226,7 +226,7 @@ export class QuestionList {
    */
   getQuestionGroup(questionId: string): QuestionGroup | undefined {
     if (!this.questionGroups) return undefined;
-    return this.questionGroups.find(group => 
+    return this.questionGroups.find(group =>
       group.questionIds.includes(questionId)
     );
   }

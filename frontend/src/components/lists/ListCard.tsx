@@ -108,19 +108,10 @@ export default function ListCard({
                     variant="outline"
                     size="sm"
                     onClick={(e) => {
-                      if (isClosed) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return;
-                      }
                       handleActionClick(e, () => onEdit(list));
                     }}
-                    disabled={isClosed}
-                    className={`border-slate-300 text-slate-700 font-semibold transition-all duration-200 rounded-xl ${isClosed
-                      ? 'opacity-50 cursor-not-allowed bg-slate-100'
-                      : 'hover:bg-slate-50'
-                      }`}
-                    title={isClosed ? 'Esta lista está fechada e não pode ser editada' : 'Editar lista'}
+                    className={`border-slate-300 text-slate-700 font-semibold transition-all duration-200 rounded-xl hover:bg-slate-50`}
+                    title={'Editar lista'}
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

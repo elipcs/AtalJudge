@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IUseCase } from '../interfaces/IUseCase';
 import { UpdateQuestionListDTO, QuestionListResponseDTO } from '../../dtos/QuestionListDtos';
 import { QuestionListRepository, ClassRepository } from '../../repositories';
-import { NotFoundError, ForbiddenError, logger } from '../../utils';
+import { NotFoundError, logger } from '../../utils';
 import { QuestionList } from '../../models/QuestionList';
 
 export interface UpdateQuestionListUseCaseInput {
@@ -39,10 +39,10 @@ export class UpdateQuestionListUseCase implements IUseCase<UpdateQuestionListUse
       throw new NotFoundError('List not found', 'LIST_NOT_FOUND');
     }
 
-    // 2. Check if list can be edited
-    if (!questionList.canBeEdited()) {
-      throw new ForbiddenError('This questionList can no longer be edited', 'CANNOT_EDIT_LIST');
-    }
+    // 2. Check if list can be edited (currently always allowed, but keeping space for future specific permissions)
+    // if (!questionList.canBeEdited()) {
+    //   throw new ForbiddenError('This questionList can no longer be edited', 'CANNOT_EDIT_LIST');
+    // }
 
     // 3. Apply updates
     if (dto.title) questionList.title = dto.title;
