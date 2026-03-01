@@ -42,15 +42,13 @@ export class EmailService {
       from: config.email.from
     });
 
-    if (config.nodeEnv === 'development') {
-      this.transporter.verify((error, _success) => {
-        if (error) {
-          logger.warn('[EMAIL] Error connecting to email server', { error: error.message });
-        } else {
-          logger.info('[EMAIL] Email server ready to send messages');
-        }
-      });
-    }
+    this.transporter.verify((error, _success) => {
+      if (error) {
+        logger.error('[EMAIL] Error connecting to email server', { error: error.message });
+      } else {
+        logger.info('[EMAIL] Email server ready to send messages');
+      }
+    });
   }
 
   async sendPasswordResetEmail(email: string, name: string, resetToken: string): Promise<void> {
@@ -62,7 +60,7 @@ export class EmailService {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reset de Senha - AtalJudge</title>
+        <title>Redefinição de Senha - AtalJudge</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -122,38 +120,38 @@ export class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Password Reset</h1>
+            <h1>Redefinição de Senha</h1>
           </div>
           
           <div class="content">
-            <p>Hello, <strong>${name}</strong>!</p>
+            <p>Olá, <strong>${name}</strong>!</p>
             
-            <p>We received a request to reset the password for your <strong>AtalJudge</strong> account.</p>
+            <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>AtalJudge</strong>.</p>
             
-            <p>Click the button below to create a new password:</p>
+            <p>Clique no botão abaixo para criar uma nova senha:</p>
             
             <div style="text-align: center;">
-              <a href="${resetUrl}" class="button">Reset Password</a>
+              <a href="${resetUrl}" class="button">Redefinir Senha</a>
             </div>
             
-            <p>Or copy and paste this link into your browser:</p>
+            <p>Ou copie e cole este link no seu navegador:</p>
             <p style="word-break: break-all; background-color: #f4f4f4; padding: 10px; border-radius: 3px;">
               ${resetUrl}
             </p>
             
             <div class="warning">
-              <strong>Important:</strong>
+              <strong>Importante:</strong>
               <ul style="margin: 5px 0;">
-                <li>This link is valid for <strong>1 hour</strong></li>
-                <li>Can only be used <strong>once</strong></li>
-                <li>If you did not request this reset, please ignore this email</li>
+                <li>Este link é válido por <strong>1 hora</strong></li>
+                <li>Pode ser usado apenas <strong>uma vez</strong></li>
+                <li>Se você não solicitou esta alteração, por favor ignore este email</li>
               </ul>
             </div>
           </div>
           
           <div class="footer">
-            <p>This is an automated email, please do not reply.</p>
-            <p>&copy; ${new Date().getFullYear()} AtalJudge. All rights reserved.</p>
+            <p>Este é um email automático, por favor não responda.</p>
+            <p>&copy; ${new Date().getFullYear()} AtalJudge. Todos os direitos reservados.</p>
           </div>
         </div>
       </body>
@@ -161,28 +159,28 @@ export class EmailService {
     `;
 
     const textContent = `
-Hello, ${name}!
+Olá, ${name}!
 
-We received a request to reset the password for your AtalJudge account.
+Recebemos uma solicitação para redefinir a senha da sua conta no AtalJudge.
 
-To create a new password, access the link below:
+Para criar uma nova senha, acesse o link abaixo:
 ${resetUrl}
 
-IMPORTANT:
-- This link is valid for 1 hour
-- Can only be used once
-- If you did not request this reset, please ignore this email
+IMPORTANTE:
+- Este link é válido por 1 hora
+- Pode ser usado apenas uma vez
+- Se você não solicitou esta alteração, por favor ignore este email
 
-This is an automated email, please do not reply.
+Este é um email automático, por favor não responda.
 
-© ${new Date().getFullYear()} AtalJudge. All rights reserved.
+© ${new Date().getFullYear()} AtalJudge. Todos os direitos reservados.
     `;
 
     try {
       await this.transporter.sendMail({
         from: `"AtalJudge" <${config.email.from}>`,
         to: email,
-        subject: 'Password Reset - AtalJudge',
+        subject: 'Redefinição de Senha - AtalJudge',
         text: textContent,
         html: htmlContent,
       });

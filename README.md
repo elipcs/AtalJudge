@@ -340,10 +340,10 @@ REDIS_PORT=6379
 REDIS_PASSWORD=your_redis_password
 
 # Email (optional)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=your_app_password
 
 # CORS
 ALLOWED_ORIGINS=http://localhost:3000
