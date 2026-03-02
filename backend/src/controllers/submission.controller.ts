@@ -104,6 +104,7 @@ function createSubmissionController(
       const submission = await createSubmissionUseCase.execute({
         dto: req.body,
         userId: req.user.sub,
+        userRole: req.user.role,
         ipAddress: req.ip
       });
 
@@ -129,7 +130,9 @@ function createSubmissionController(
         questionId,
         code,
         language,
-        userId: req.user.sub
+        userId: req.user.sub,
+        userRole: req.user.role,
+        ipAddress: req.ip
       });
 
       successResponse(res, result, 'Code submitted successfully', 201);

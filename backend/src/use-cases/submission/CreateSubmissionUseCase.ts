@@ -7,10 +7,14 @@ import { SubmissionStatus, ProgrammingLanguage } from '../../enums';
 import { logger, ValidationError, NotFoundError } from '../../utils';
 import { SubmissionMapper } from '../../mappers';
 import { Submission } from '../../models/Submission';
+import { AllowedIPService } from '../../services/AllowedIPService';
+import { UserRole } from '../../enums';
+import { ForbiddenError } from '../../utils';
 
 export interface CreateSubmissionUseCaseInput {
   dto: CreateSubmissionDTO;
   userId: string;
+  userRole?: string;
   ipAddress?: string;
 }
 
@@ -29,11 +33,21 @@ export class CreateSubmissionUseCase implements IUseCase<CreateSubmissionUseCase
   constructor(
     @inject(SubmissionRepository) private submissionRepository: SubmissionRepository,
     @inject(QuestionRepository) private questionRepository: QuestionRepository,
+    @inject(AllowedIPService) private allowedIPService: AllowedIPService,
     @inject('SubmissionQueueService') private queueService?: SubmissionQueueService
   ) { }
 
   async execute(input: CreateSubmissionUseCaseInput): Promise<SubmissionResponseDTO> {
-    const { dto, userId } = input;
+    const { dto, userId, userRole, ipAddress } = input;
+
+    // 0. Validate IP Whitelist (only for students)
+    if (userRole === UserRole.STUDENT && ipAddress) {
+      const isAllowed = await this.allowedIPService.isIPAllowed(ipAddress);
+      if (!isAllowed) {
+        logger.warn('[CreateSubmissionUseCase] IP not allowed', { ipAddress, userId });
+        throw new ForbiddenError('Acesso restrito à rede autorizada do laboratório.', 'IP_NOT_ALLOWED');
+      }
+    }
 
     // 1. Validate programming language
     if (!Object.values(ProgrammingLanguage).includes(dto.language as ProgrammingLanguage)) {

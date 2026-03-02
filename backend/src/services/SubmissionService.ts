@@ -18,8 +18,10 @@ import { SubmissionStatus, JudgeVerdict, ProgrammingLanguage } from '../enums';
 import { SandboxFusionService } from './SandboxFusionService';
 import { SubmissionQueueService } from './SubmissionQueueService';
 import { GradeService } from './GradeService';
-import { logger, NotFoundError, ValidationError } from '../utils';
+import { logger, NotFoundError, ValidationError, ForbiddenError } from '../utils';
 import { SubmissionMapper } from '../mappers';
+import { AllowedIPService } from './AllowedIPService';
+import { UserRole } from '../enums';
 import { config } from '../config';
 
 /**
@@ -36,6 +38,7 @@ export class SubmissionService {
     @inject(SandboxFusionService) private judgeService: SandboxFusionService,
     @inject(GradeService) private gradeService: GradeService,
     @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
+    @inject(AllowedIPService) private allowedIPService: AllowedIPService,
     @inject('SubmissionQueueService') private queueService?: SubmissionQueueService
   ) { }
 
@@ -185,6 +188,7 @@ export class SubmissionService {
     code: string;
     language: string;
     userId: string;
+    userRole?: string;
     ipAddress?: string;
   }): Promise<any> {
     logger.info('Starting code submission', {
@@ -193,6 +197,15 @@ export class SubmissionService {
       language: data.language,
       codeLength: data.code.length
     });
+
+    // 0. Validate IP Whitelist (only for students)
+    if (data.userRole === UserRole.STUDENT && data.ipAddress) {
+      const isAllowed = await this.allowedIPService.isIPAllowed(data.ipAddress);
+      if (!isAllowed) {
+        logger.warn('IP not allowed for submission', { ipAddress: data.ipAddress, userId: data.userId });
+        throw new ForbiddenError('Acesso restrito à rede autorizada do laboratório.', 'IP_NOT_ALLOWED');
+      }
+    }
 
     if (!Object.values(ProgrammingLanguage).includes(data.language as ProgrammingLanguage)) {
       logger.warn('Invalid programming language', { language: data.language });

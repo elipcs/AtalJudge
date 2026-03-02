@@ -24,7 +24,8 @@ export default new DataSource({
   logging: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
 
   // Don't load entities for migrations - migrations create the schema
-  entities: [],
+  // entities: [],
+  entities: [__dirname + '/../models/**/*.{ts,js}'],
 
   migrations: [__dirname + '/../migrations/**/*.{ts,js}'],
 
