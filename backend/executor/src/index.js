@@ -52,17 +52,24 @@ app.post('/run', async (req, res) => {
         if (language === 'java') {
             try {
                 await new Promise((resolve, reject) => {
+                    console.log(`[Executor] Starting compilation: javac Main.java (runId: ${runId})`);
                     const compile = spawn('javac', ['Main.java'], { cwd: workDir });
                     let compileStderr = '';
 
                     const compileTimer = setTimeout(() => {
                         compile.kill('SIGKILL');
-                        reject('Compilation timeout (10s)');
-                    }, 10000);
+                        reject('Compilation timeout (60s)');
+                    }, 60000);
+
+                    compile.on('error', (err) => {
+                        clearTimeout(compileTimer);
+                        reject(`Failed to start javac: ${err.message}`);
+                    });
 
                     compile.stderr.on('data', (data) => compileStderr += data.toString());
                     compile.on('close', (code) => {
                         clearTimeout(compileTimer);
+                        console.log(`[Executor] Compilation finished with code ${code} (runId: ${runId})`);
                         if (code !== 0) reject(compileStderr);
                         else resolve();
                     });
