@@ -104,6 +104,7 @@ export interface SubmissionResponseDTO {
   errorMessage?: string;
   createdAt: string | Date;
   updatedAt: string | Date;
+  ipAddress?: string;
   userName?: string;
   userEmail?: string;
   questionName?: string;

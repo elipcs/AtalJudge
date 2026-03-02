@@ -52,6 +52,7 @@ export class SubmissionResponseDTO {
   errorMessage?: string;
   createdAt!: Date;
   updatedAt!: Date;
+  ipAddress?: string;
   userName?: string;
   userEmail?: string;
   studentRegistration?: string;
@@ -97,6 +98,7 @@ export class SubmissionDetailDTO {
   errorMessage?: string;
   createdAt!: Date;
   updatedAt!: Date;
+  ipAddress?: string;
   questionName?: string;
   questionListId?: string;
   questionListTitle?: string;

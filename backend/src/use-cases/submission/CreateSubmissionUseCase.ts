@@ -11,6 +11,7 @@ import { Submission } from '../../models/Submission';
 export interface CreateSubmissionUseCaseInput {
   dto: CreateSubmissionDTO;
   userId: string;
+  ipAddress?: string;
 }
 
 /**
@@ -29,7 +30,7 @@ export class CreateSubmissionUseCase implements IUseCase<CreateSubmissionUseCase
     @inject(SubmissionRepository) private submissionRepository: SubmissionRepository,
     @inject(QuestionRepository) private questionRepository: QuestionRepository,
     @inject('SubmissionQueueService') private queueService?: SubmissionQueueService
-  ) {}
+  ) { }
 
   async execute(input: CreateSubmissionUseCaseInput): Promise<SubmissionResponseDTO> {
     const { dto, userId } = input;
@@ -56,13 +57,14 @@ export class CreateSubmissionUseCase implements IUseCase<CreateSubmissionUseCase
     submission.score = 0;
     submission.totalTests = 0;
     submission.passedTests = 0;
+    submission.ipAddress = input.ipAddress;
 
     const savedSubmission = await this.submissionRepository.create(submission);
-    
-    logger.info('[CreateSubmissionUseCase] Submission created', { 
-      submissionId: savedSubmission.id, 
-      userId, 
-      questionId: dto.questionId 
+
+    logger.info('[CreateSubmissionUseCase] Submission created', {
+      submissionId: savedSubmission.id,
+      userId,
+      questionId: dto.questionId
     });
 
     // 4. Add to queue or process directly
@@ -79,18 +81,18 @@ export class CreateSubmissionUseCase implements IUseCase<CreateSubmissionUseCase
   private async enqueueOrProcessSubmission(submissionId: string): Promise<SubmissionStatus> {
     if (this.queueService) {
       logger.info('[CreateSubmissionUseCase] Adding to queue', { submissionId });
-      
+
       await this.submissionRepository.update(submissionId, {
         status: SubmissionStatus.IN_QUEUE
       });
 
       await this.queueService.addSubmissionToQueue(submissionId);
-      
+
       logger.info('[CreateSubmissionUseCase] Submission added to queue', { submissionId });
       return SubmissionStatus.IN_QUEUE;
     } else {
-      logger.warn('[CreateSubmissionUseCase] Queue not available, processing will be in background', { 
-        submissionId 
+      logger.warn('[CreateSubmissionUseCase] Queue not available, processing will be in background', {
+        submissionId
       });
       return SubmissionStatus.PENDING;
     }

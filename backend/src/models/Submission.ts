@@ -59,6 +59,9 @@ export class Submission {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt!: Date;
 
+  @Column({ name: 'ip_address', type: 'varchar', length: 45, nullable: true })
+  ipAddress?: string;
+
   @ManyToOne(() => User, user => user.submissions)
   @JoinColumn({ name: 'user_id' })
   user!: User;
@@ -78,32 +81,32 @@ export class Submission {
    * Checks if the submission can be resubmitted
    */
   canBeResubmitted(): boolean {
-    return this.status === SubmissionStatus.ERROR || 
-           this.status === SubmissionStatus.COMPLETED;
+    return this.status === SubmissionStatus.ERROR ||
+      this.status === SubmissionStatus.COMPLETED;
   }
 
   /**
    * Checks if the submission is processing
    */
   isProcessing(): boolean {
-    return this.status === SubmissionStatus.IN_QUEUE || 
-           this.status === SubmissionStatus.RUNNING;
+    return this.status === SubmissionStatus.IN_QUEUE ||
+      this.status === SubmissionStatus.RUNNING;
   }
 
   /**
    * Checks if the submission is pending or queued
    */
   isWaiting(): boolean {
-    return this.status === SubmissionStatus.PENDING || 
-           this.status === SubmissionStatus.IN_QUEUE;
+    return this.status === SubmissionStatus.PENDING ||
+      this.status === SubmissionStatus.IN_QUEUE;
   }
 
   /**
    * Checks if the submission is finished (success or error)
    */
   isFinished(): boolean {
-    return this.status === SubmissionStatus.COMPLETED || 
-           this.status === SubmissionStatus.ERROR;
+    return this.status === SubmissionStatus.COMPLETED ||
+      this.status === SubmissionStatus.ERROR;
   }
 
   /**

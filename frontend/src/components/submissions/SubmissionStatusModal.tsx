@@ -5,6 +5,7 @@ import { submissionsApi, SubmissionDetailsResponse } from "@/services/submission
 import { logger } from "@/utils/logger";
 import { getVerdictColor } from "@/utils/statusUtils";
 import { formatLanguageName } from "@/utils/languageUtils";
+import { useUserRoleContext } from "../../contexts/UserRoleContext";
 
 interface SubmissionStatusModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export default function SubmissionStatusModal({
   userName: initialUserName = "",
   questionListTitle: initialquestionListTitle = "",
 }: SubmissionStatusModalProps) {
+  const { userRole } = useUserRoleContext();
   const [status, setStatus] = useState(initialStatus.toLowerCase());
   const [language, setLanguage] = useState(initialLanguage);
   const [createdAt, setCreatedAt] = useState<string>(new Date().toISOString());
@@ -40,6 +42,7 @@ export default function SubmissionStatusModal({
   const [questionName, setQuestionName] = useState<string>(initialQuestionName);
   const [userName, setUserName] = useState<string>(initialUserName);
   const [questionListTitle, setquestionListTitle] = useState<string>(initialquestionListTitle);
+  const [ipAddress, setIpAddress] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!isOpen || !submissionId) return;
@@ -78,6 +81,7 @@ export default function SubmissionStatusModal({
         setQuestionName(submission.questionName || "");
         setUserName(submission.userName || "");
         setquestionListTitle(submission.questionListTitle || submission.questionListTitle || "");
+        setIpAddress(submission.ipAddress);
 
         if (newStatus === "completed") {
           try {
@@ -315,6 +319,14 @@ export default function SubmissionStatusModal({
                   <p className="text-xs font-semibold text-slate-600 mb-1">Criado em:</p>
                   <p className="text-xs text-slate-900 font-medium">{new Date(createdAt).toLocaleString("pt-BR")}</p>
                 </div>
+                {(userRole === 'professor' || userRole === 'assistant') && ipAddress && (
+                  <div>
+                    <p className="text-xs font-semibold text-slate-600 mb-1">Endereço IP:</p>
+                    <p className="text-xs text-slate-900 font-mono bg-white p-2 rounded border border-slate-200">
+                      {ipAddress}
+                    </p>
+                  </div>
+                )}
                 {code && (
                   <div>
                     <p className="text-xs font-semibold text-slate-600 mb-1.5">Código Submetido:</p>

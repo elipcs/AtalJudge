@@ -143,7 +143,7 @@ export class SubmissionService {
     });
   }
 
-  async createSubmission(data: CreateSubmissionDTO, userId: string): Promise<SubmissionResponseDTO> {
+  async createSubmission(data: CreateSubmissionDTO, userId: string, ipAddress?: string): Promise<SubmissionResponseDTO> {
     const submission = await this.submissionRepository.create({
       userId,
       questionId: data.questionId,
@@ -152,7 +152,8 @@ export class SubmissionService {
       status: SubmissionStatus.PENDING,
       score: 0,
       totalTests: 0,
-      passedTests: 0
+      passedTests: 0,
+      ipAddress
     });
 
     logger.info('Submission created', { submissionId: submission.id, userId, questionId: data.questionId });
@@ -173,6 +174,7 @@ export class SubmissionService {
       memoryUsedKb: submission.memoryUsedKb,
       verdict: submission.verdict,
       errorMessage: submission.errorMessage,
+      ipAddress: submission.ipAddress,
       createdAt: submission.createdAt,
       updatedAt: submission.updatedAt
     });
@@ -183,6 +185,7 @@ export class SubmissionService {
     code: string;
     language: string;
     userId: string;
+    ipAddress?: string;
   }): Promise<any> {
     logger.info('Starting code submission', {
       userId: data.userId,
@@ -204,7 +207,8 @@ export class SubmissionService {
       status: SubmissionStatus.PENDING,
       score: 0,
       totalTests: 0,
-      passedTests: 0
+      passedTests: 0,
+      ipAddress: data.ipAddress
     });
 
     logger.info('Submission registered in database', { submissionId: submission.id });
