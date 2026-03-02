@@ -93,6 +93,10 @@ import { PerformSystemResetUseCase } from './use-cases/system-reset';
 export function createApp(): Application {
   const app = express();
 
+  // Trust proxy is required for express-rate-limit and for accurate IP capture
+  // when running behind a reverse proxy (like Docker's network or Nginx)
+  app.set('trust proxy', 1);
+
   app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
     crossOriginOpenerPolicy: { policy: 'unsafe-none' }, // Allow usage without HTTPS
