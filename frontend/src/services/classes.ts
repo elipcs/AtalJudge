@@ -28,7 +28,7 @@ function mapClassDTO(dto: ClassResponseDTO): Class {
       studentRegistration: s.studentRegistration || '',
       role: s.role,
       classId: dto.id,
-      grades: [],
+      grades: Array.isArray(s.grades) ? s.grades : [],
       createdAt: typeof s.createdAt === 'string' ? s.createdAt : new Date(s.createdAt).toISOString(),
     }))
     : [];
@@ -232,7 +232,10 @@ export const classesApi = {
   async getClassStudents(classId: string): Promise<Array<{ id: string; name: string; email: string; role: string; studentRegistration?: string; createdAt: string }>> {
     try {
       const { data } = await API.classes.students(classId);
-      return data.students || [];
+      return (data.students || []).map((s: any) => ({
+        ...s,
+        grades: Array.isArray(s.grades) ? s.grades : []
+      }));
     } catch (error) {
       throw error;
     }

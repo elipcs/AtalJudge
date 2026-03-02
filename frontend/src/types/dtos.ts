@@ -17,7 +17,7 @@ export interface ClassResponseDTO {
   professorName?: string;
   studentIds?: string[];
   professor?: { id: string; name: string; email: string; role: string };
-  students?: Array<{ id: string; name: string; email: string; role: string; studentRegistration?: string; createdAt: string }>;
+  students?: Array<{ id: string; name: string; email: string; role: string; studentRegistration?: string; grades?: Array<{ id: string; questionListId: string; score: number; createdAt: string; updatedAt: string }>; createdAt: string }>;
   studentCount?: number;
   createdAt: string | Date;
   updatedAt: string | Date;
