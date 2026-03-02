@@ -60,7 +60,10 @@ export function useClassPage() {
     if ((userRole === 'professor' || userRole === 'assistant') && selectedClassId && !studentsLoading && classes.length > 0) {
       const classData = classes.find(cls => cls.id === selectedClassId);
       if (classData) {
-        const studentsToUse = (classData.students || []).length > 0 ? (classData.students || []) : students;
+        // Prioritize 'students' from useClassStudents hook as it usually has more detailed data (grades)
+        // compared to classData.students which might come from a list view
+        const studentsToUse = (students && students.length > 0) ? students : (classData.students || []);
+
         const id = setTimeout(() => {
           setClassDetails({
             cls: classData,
@@ -70,7 +73,7 @@ export function useClassPage() {
         return () => clearTimeout(id);
       }
     }
-  }, [userRole, selectedClassId, studentsLoading, classes.length, students.length]);
+  }, [userRole, selectedClassId, studentsLoading, classes.length, students]);
 
   const handleCreateClass = async (nameClass: string) => {
     if (!nameClass.trim()) {

@@ -41,6 +41,13 @@ export class ClassMapper {
         email: s.email,
         role: s.role,
         studentRegistration: s.studentRegistration,
+        grades: s.grades ? s.grades.map(g => ({
+          id: g.id,
+          questionListId: g.questionListId,
+          score: g.score,
+          createdAt: g.createdAt.toISOString(),
+          updatedAt: g.updatedAt.toISOString()
+        })) : [],
         createdAt: s.createdAt.toISOString()
       })),
       studentCount: classEntity.students?.length || 0,
