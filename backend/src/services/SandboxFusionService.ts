@@ -28,9 +28,41 @@ interface ExecutionResult {
     createdAt: number;
 }
 
+/**
+ * Simple semaphore to limit concurrency
+ */
+class Semaphore {
+    private activeCount = 0;
+    private queue: (() => void)[] = [];
+
+    constructor(private readonly maxConcurrency: number) { }
+
+    async acquire(): Promise<void> {
+        if (this.activeCount < this.maxConcurrency) {
+            this.activeCount++;
+            return Promise.resolve();
+        }
+
+        return new Promise<void>((resolve) => {
+            this.queue.push(resolve);
+        });
+    }
+
+    release(): void {
+        const next = this.queue.shift();
+        if (next) {
+            next();
+        } else {
+            this.activeCount--;
+        }
+    }
+}
+
 @injectable()
 export class SandboxFusionService {
     private results: Map<string, ExecutionResult> = new Map();
+    private semaphores: Map<string, Semaphore> = new Map();
+    private readonly MAX_CONCURRENCY = 4; // limit per language executor
 
     constructor() { }
 
@@ -237,6 +269,14 @@ export class SandboxFusionService {
     ) {
         logger.info(`[SandboxFusion-HTTP] Preparing execution for ${token}`, { language });
 
+        // Get or create semaphore for this language
+        if (!this.semaphores.has(language)) {
+            this.semaphores.set(language, new Semaphore(this.MAX_CONCURRENCY));
+        }
+        const semaphore = this.semaphores.get(language)!;
+
+        await semaphore.acquire();
+
         try {
             this.updateStatus(token, 2, 'Processing');
 
@@ -302,6 +342,8 @@ export class SandboxFusionService {
             }
 
             this.updateStatus(token, 13, 'Internal Error', { message: error.message });
+        } finally {
+            semaphore.release();
         }
     }
 

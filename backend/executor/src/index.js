@@ -15,6 +15,29 @@ if (!fs.existsSync(TEMP_DIR)) {
     fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
+// Periodic cleanup of temp files older than 10 minutes
+// Folders should normally be deleted after execution, but this is a safety net.
+setInterval(() => {
+    try {
+        const files = fs.readdirSync(TEMP_DIR);
+        const now = Date.now();
+        files.forEach(file => {
+            const filePath = path.join(TEMP_DIR, file);
+            try {
+                const stats = fs.statSync(filePath);
+                if (now - stats.mtimeMs > 600000) { // 10 minutes
+                    fs.rmSync(filePath, { recursive: true, force: true });
+                    console.log(`[Executor] Cleaned up escaped directory: ${file}`);
+                }
+            } catch (err) {
+                // File might have been deleted by the process itself
+            }
+        });
+    } catch (e) {
+        console.error('[Executor] Periodic cleanup error', e);
+    }
+}, 300000); // Run every 5 minutes
+
 app.post('/run', async (req, res) => {
     try {
         const { code, language, stdin, cmd, args } = req.body;

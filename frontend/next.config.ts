@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   // Enable standalone output for optimized Docker images
   // Enable static export
   output: 'export',
+  trailingSlash: true,
 
   images: {
     unoptimized: true,

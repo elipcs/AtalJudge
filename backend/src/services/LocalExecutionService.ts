@@ -35,9 +35,41 @@ interface ExecutionResult {
     createdAt: number;
 }
 
+/**
+ * Simple semaphore to limit concurrency
+ */
+class Semaphore {
+    private activeCount = 0;
+    private queue: (() => void)[] = [];
+
+    constructor(private readonly maxConcurrency: number) { }
+
+    async acquire(): Promise<void> {
+        if (this.activeCount < this.maxConcurrency) {
+            this.activeCount++;
+            return Promise.resolve();
+        }
+
+        return new Promise<void>((resolve) => {
+            this.queue.push(resolve);
+        });
+    }
+
+    release(): void {
+        const next = this.queue.shift();
+        if (next) {
+            next();
+        } else {
+            this.activeCount--;
+        }
+    }
+}
+
 @injectable()
 export class LocalExecutionService {
     private results: Map<string, ExecutionResult> = new Map();
+    private semaphores: Map<string, Semaphore> = new Map();
+    private readonly MAX_CONCURRENCY = 2; // Harder limit because it runs real docker containers on the host
     private readonly TEMP_DIR = '/tmp/ataljudge-executions';
 
     constructor() {
@@ -262,6 +294,14 @@ export class LocalExecutionService {
         stdin: string | undefined,
         limits: any
     ) {
+        // Get or create semaphore for this language
+        if (!this.semaphores.has(language)) {
+            this.semaphores.set(language, new Semaphore(this.MAX_CONCURRENCY));
+        }
+        const semaphore = this.semaphores.get(language)!;
+
+        await semaphore.acquire();
+
         const workDir = path.join(this.TEMP_DIR, token);
 
         try {
@@ -356,6 +396,7 @@ export class LocalExecutionService {
             } catch (e) {
                 logger.warn(`Failed to cleanup workdir ${workDir}`, e);
             }
+            semaphore.release();
         }
     }
 

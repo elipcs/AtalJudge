@@ -389,6 +389,8 @@ export function createApp(): Application {
     if (req.path.startsWith('/api')) {
       return next();
     }
+    // Explicitly set content type to avoid browsers misinterpreting as .txt in some environments
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.sendFile(path.join(clientPath, 'index.html'));
   });
 
