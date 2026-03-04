@@ -15,7 +15,7 @@ import PageHeader from "../../components/PageHeader";
 import PageLoading from "../../components/PageLoading";
 import SubmissionStatusModal from "../../components/submissions/SubmissionStatusModal";
 import { getSubmissionStatusColor, normalizeStatus, getVerdictColor } from "../../utils/statusUtils";
-import { SUBMISSION_STATUS_OPTIONS } from "../../constants";
+import { SUBMISSION_STATUS_OPTIONS, LANGUAGE_OPTIONS } from "../../constants";
 import { logger } from '@/utils/logger';
 import { getVerdictBadgeColor } from "@/utils/statusUtils";
 import { formatLanguageName } from "@/utils/languageUtils";
@@ -26,6 +26,10 @@ interface SubmissionsPageState {
   filteredSubmissions: SubmissionResponseDTO[];
   loading: boolean;
   debouncedSearchTerm: string;
+  questionName: string;
+  listName: string;
+  userName: string;
+  selectedLanguage: string;
   selectedStatus: string;
   currentPage: number;
   itemsPerPage: number;
@@ -46,6 +50,10 @@ export default function SubmissoesPage() {
     filteredSubmissions: [],
     loading: true,
     debouncedSearchTerm: "",
+    questionName: "",
+    listName: "",
+    userName: "",
+    selectedLanguage: "all",
     selectedStatus: "all",
     currentPage: 1,
     itemsPerPage: 20,
@@ -60,44 +68,23 @@ export default function SubmissoesPage() {
     setState(prev => ({ ...prev, loading: true }));
 
     try {
-      let response;
+      const filters: SubmissionFilters = {
+        page: state.currentPage,
+        limit: state.itemsPerPage,
+        searchTerm: state.debouncedSearchTerm,
+        questionName: state.questionName,
+        listName: state.listName,
+        userName: state.userName,
+        language: state.selectedLanguage === "all" ? undefined : state.selectedLanguage
+      };
 
-      if (state.debouncedSearchTerm.trim()) {
-        // Global search
-        const params = new URLSearchParams();
-        params.append('q', state.debouncedSearchTerm);
-        params.append('page', state.currentPage.toString());
-        params.append('limit', state.itemsPerPage.toString());
-        if (state.selectedStatus !== "all") {
-          params.append('verdict', state.selectedStatus as string);
-        }
-
-        const result = await apiConfig.get<any>(`/submissions/search/global?${params.toString()}`);
-        response = {
-          submissions: result.data?.submissions || [],
-          pagination: {
-            page: result.data?.page || 1,
-            limit: result.data?.limit || 20,
-            total: result.data?.total || 0,
-            totalPages: Math.ceil((result.data?.total || 0) / (result.data?.limit || 20))
-          }
-        };
-      } else {
-        // Regular query with filters
-        const filters: SubmissionFilters = {
-          page: state.currentPage,
-          limit: state.itemsPerPage
-        };
-
-        if (state.selectedStatus !== "all") {
-          filters.verdict = state.selectedStatus as any;
-        }
-
-        response = await submissionsApi.getSubmissions(filters);
+      if (state.selectedStatus !== "all") {
+        filters.verdict = state.selectedStatus as any;
       }
 
-      const restrictedListIds = new Set<string>();
+      const response = await submissionsApi.getSubmissions(filters);
 
+      const restrictedListIds = new Set<string>();
       const accessibleSubmissions = response.submissions;
 
       setState(prev => ({
@@ -128,7 +115,11 @@ export default function SubmissoesPage() {
     }
 
     debounceTimer.current = setTimeout(() => {
-      setState(prev => ({ ...prev, debouncedSearchTerm: searchTerm, currentPage: 1 }));
+      setState(prev => ({
+        ...prev,
+        debouncedSearchTerm: searchTerm,
+        currentPage: 1
+      }));
     }, 500);
 
     return () => {
@@ -136,7 +127,7 @@ export default function SubmissoesPage() {
         clearTimeout(debounceTimer.current);
       }
     };
-  }, [searchTerm]);
+  }, [searchTerm, state.questionName, state.listName, state.userName]);
 
   useEffect(() => {
     const id = setTimeout(() => { loadSubmissions(); }, 0);
@@ -145,6 +136,22 @@ export default function SubmissoesPage() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+  };
+
+  const handleQuestionNameChange = (value: string) => {
+    setState(prev => ({ ...prev, questionName: value, currentPage: 1 }));
+  };
+
+  const handleListNameChange = (value: string) => {
+    setState(prev => ({ ...prev, listName: value, currentPage: 1 }));
+  };
+
+  const handleUserNameChange = (value: string) => {
+    setState(prev => ({ ...prev, userName: value, currentPage: 1 }));
+  };
+
+  const handleLanguageChange = (language: string) => {
+    setState(prev => ({ ...prev, selectedLanguage: language, currentPage: 1 }));
   };
 
   const handleStatusChange = (status: string) => {
@@ -237,43 +244,109 @@ export default function SubmissoesPage() {
 
       { }
       <Card className="p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Buscar por questão, lista ou estudante..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full"
-            />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Busca Geral</label>
+              <Input
+                placeholder="Questão, lista ou estudante..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Questão</label>
+              <Input
+                placeholder="Nome da questão"
+                value={state.questionName}
+                onChange={(e) => handleQuestionNameChange(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Lista</label>
+              <Input
+                placeholder="Nome da lista"
+                value={state.listName}
+                onChange={(e) => handleListNameChange(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Estudante</label>
+              <Input
+                placeholder="Nome do estudante"
+                value={state.userName}
+                onChange={(e) => handleUserNameChange(e.target.value)}
+                className="w-full"
+              />
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <Dropdown
-              value={state.selectedStatus}
-              onChange={handleStatusChange}
-              options={SUBMISSION_STATUS_OPTIONS}
-              placeholder="Selecione um status"
-            />
+          <div className="flex flex-wrap items-end gap-4 pt-2 border-t border-gray-100 mt-4 pt-4">
+            <div className="w-full md:w-48">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Linguagem</label>
+              <Dropdown
+                value={state.selectedLanguage}
+                onChange={handleLanguageChange}
+                options={[{ value: "all", label: "Todas as linguagens" }, ...LANGUAGE_OPTIONS]}
+                placeholder="Linguagem"
+              />
+            </div>
 
-            <Dropdown
-              value={state.itemsPerPage.toString()}
-              onChange={(value) => setState(prev => ({ ...prev, itemsPerPage: Number(value), currentPage: 1 }))}
-              options={[
-                { value: "10", label: "10 por página" },
-                { value: "20", label: "20 por página" },
-                { value: "50", label: "50 por página" },
-                { value: "100", label: "100 por página" }
-              ]}
-              placeholder="Itens por página"
-            />
+            <div className="w-full md:w-48">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <Dropdown
+                value={state.selectedStatus}
+                onChange={handleStatusChange}
+                options={SUBMISSION_STATUS_OPTIONS}
+                placeholder="Status"
+              />
+            </div>
 
-            <Button
-              onClick={refreshSubmissions}
-              variant="outline"
-              className="px-4 py-2 text-sm"
-            >
-              Atualizar
-            </Button>
+            <div className="w-full md:w-48">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Itens</label>
+              <Dropdown
+                value={state.itemsPerPage.toString()}
+                onChange={(value) => setState(prev => ({ ...prev, itemsPerPage: Number(value), currentPage: 1 }))}
+                options={[
+                  { value: "10", label: "10 por página" },
+                  { value: "20", label: "20 por página" },
+                  { value: "50", label: "50 por página" },
+                  { value: "100", label: "100 por página" }
+                ]}
+                placeholder="Itens"
+              />
+            </div>
+
+            <div className="flex-1 flex justify-end gap-2">
+              <Button
+                onClick={() => {
+                  setSearchTerm("");
+                  setState(prev => ({
+                    ...prev,
+                    questionName: "",
+                    listName: "",
+                    userName: "",
+                    selectedLanguage: "all",
+                    selectedStatus: "all",
+                    currentPage: 1
+                  }));
+                }}
+                variant="outline"
+                className="px-4 py-2 text-sm"
+              >
+                Limpar Filtros
+              </Button>
+              <Button
+                onClick={refreshSubmissions}
+                variant="outline"
+                className="px-4 py-2 text-sm bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+              >
+                Atualizar
+              </Button>
+            </div>
           </div>
         </div>
       </Card>

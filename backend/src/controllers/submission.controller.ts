@@ -62,16 +62,20 @@ function createSubmissionController(
     authenticate,
     asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
       const searchTerm = req.query.q as string;
-
-      if (!searchTerm) {
-        throw new ValidationError('Search term is required', 'SEARCH_TERM_REQUIRED');
-      }
+      const questionName = req.query.questionName as string;
+      const listName = req.query.listName as string;
+      const userName = req.query.userName as string;
+      const language = req.query.language as string;
 
       const page = req.query.page ? parseInt(req.query.page as string) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
 
       const result = await searchSubmissionsUseCase.execute({
         searchTerm,
+        questionName,
+        listName,
+        userName,
+        language,
         verdict: req.query.verdict as string,
         status: req.query.status as SubmissionStatus,
         page,

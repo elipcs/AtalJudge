@@ -6,7 +6,11 @@ import { SubmissionStatus } from '../../enums';
 import { SubmissionMapper } from '../../mappers';
 
 export interface SearchSubmissionsInput {
-  searchTerm: string;
+  searchTerm?: string;
+  questionName?: string;
+  listName?: string;
+  userName?: string;
+  language?: string;
   verdict?: string;
   status?: SubmissionStatus;
   page?: number;
@@ -34,12 +38,13 @@ export interface SearchSubmissionsOutput {
 export class SearchSubmissionsUseCase implements IUseCase<SearchSubmissionsInput, SearchSubmissionsOutput> {
   constructor(
     @inject(SubmissionRepository) private submissionRepository: SubmissionRepository
-  ) {}
+  ) { }
 
   async execute(input: SearchSubmissionsInput): Promise<SearchSubmissionsOutput> {
-    // 1. Validate search term
-    if (!input.searchTerm || input.searchTerm.trim().length === 0) {
-      throw new Error('Search term is required');
+    // 1. Validate search term (removed strict requirement if other filters are present)
+    const hasFilters = input.searchTerm || input.questionName || input.listName || input.userName || input.language || input.verdict || input.status;
+    if (!hasFilters) {
+      throw new Error('At least one search term or filter is required');
     }
 
     // 2. Apply default values for pagination
@@ -50,6 +55,10 @@ export class SearchSubmissionsUseCase implements IUseCase<SearchSubmissionsInput
     const { submissions: rawSubmissions, total } = await this.submissionRepository.searchGlobal(
       input.searchTerm,
       {
+        questionName: input.questionName,
+        listName: input.listName,
+        userName: input.userName,
+        language: input.language,
         verdict: input.verdict,
         status: input.status,
         page,

@@ -1,4 +1,4 @@
-import { API } from '../config/api';
+import { API, get } from '../config/api';
 import { logger } from '../utils/logger';
 import { SubmissionResponseDTO, SubmissionDetailDTO, PaginatedSubmissionsResponse } from '@/types/dtos';
 
@@ -88,10 +88,15 @@ export interface SubmitCodeData {
 }
 
 export interface SubmissionFilters {
+  searchTerm?: string;
   questionId?: string;
   questionListId?: string;
   userId?: string;
-  verdict?: 'pending' | 'accepted' | 'failed' | 'error' | 'timeout';
+  questionName?: string;
+  listName?: string;
+  userName?: string;
+  language?: string;
+  verdict?: 'all' | 'pending' | 'accepted' | 'failed' | 'error' | 'timeout';
   page?: number;
   limit?: number;
 }
@@ -100,15 +105,30 @@ export const submissionsApi = {
   async getSubmissions(filters?: SubmissionFilters): Promise<PaginatedSubmissionsResponse> {
     try {
       const queryParams: Record<string, string> = {};
+      if (filters?.searchTerm) queryParams.q = filters.searchTerm;
       if (filters?.questionId) queryParams.questionId = filters.questionId;
       if (filters?.questionListId) queryParams.questionListId = filters.questionListId;
       if (filters?.userId) queryParams.userId = filters.userId;
-      if (filters?.verdict) queryParams.verdict = filters.verdict;
+      if (filters?.questionName) queryParams.questionName = filters.questionName;
+      if (filters?.listName) queryParams.listName = filters.listName;
+      if (filters?.userName) queryParams.userName = filters.userName;
+      if (filters?.language) queryParams.language = filters.language;
+      if (filters?.verdict && filters.verdict !== 'all') queryParams.verdict = filters.verdict;
       if (filters?.page) queryParams.page = String(filters.page);
       if (filters?.limit) queryParams.limit = String(filters.limit);
 
-      const { data } = await API.submissions.list(queryParams);
-      return data;
+      // Se tiver filtros de busca, usar o endpoint de busca
+      const hasSearchFilters = filters?.searchTerm || filters?.questionName || filters?.listName || filters?.userName || filters?.language;
+
+      let response;
+      if (hasSearchFilters) {
+        const params = new URLSearchParams(queryParams);
+        response = await get<any>(`/submissions/search/global?${params.toString()}`);
+      } else {
+        response = await API.submissions.list(queryParams);
+      }
+
+      return response.data;
     } catch (error) {
       return {
         submissions: [],

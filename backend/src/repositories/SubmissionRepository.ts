@@ -1,4 +1,5 @@
 import { injectable } from 'tsyringe';
+import { Brackets } from 'typeorm';
 import { BaseRepository } from './BaseRepository';
 import { Submission } from '../models/Submission';
 import { SubmissionStatus } from '../enums';
@@ -119,8 +120,12 @@ export class SubmissionRepository extends BaseRepository<Submission> {
    * Search submissions globally by question, list, student, or language
    */
   async searchGlobal(
-    searchTerm: string,
+    searchTerm?: string,
     filters?: {
+      questionName?: string;
+      listName?: string;
+      userName?: string;
+      language?: string;
       verdict?: string;
       status?: SubmissionStatus;
       page?: number;
@@ -132,15 +137,44 @@ export class SubmissionRepository extends BaseRepository<Submission> {
       .leftJoinAndSelect('submission.question', 'question')
       .leftJoinAndSelect('question.questionLists', 'questionList');
 
-    // Buscar por título da questão, nome da lista, nome do estudante ou linguagem
-    const searchLower = `%${searchTerm.toLowerCase()}%`;
-    queryBuilder.where(
-      'LOWER(question.title) LIKE LOWER(:searchTerm) OR ' +
-      'LOWER(questionList.title) LIKE LOWER(:searchTerm) OR ' +
-      'LOWER(user.name) LIKE LOWER(:searchTerm) OR ' +
-      'LOWER(submission.language) LIKE LOWER(:searchTerm)',
-      { searchTerm: searchLower }
-    );
+    // 1. Generic Search Term (matches multiple fields)
+    if (searchTerm && searchTerm.trim()) {
+      const searchLower = `%${searchTerm.toLowerCase()}%`;
+      queryBuilder.andWhere(
+        new Brackets((qb: any) => {
+          qb.where('LOWER(question.title) LIKE LOWER(:searchTerm)')
+            .orWhere('LOWER(questionList.title) LIKE LOWER(:searchTerm)')
+            .orWhere('LOWER(user.name) LIKE LOWER(:searchTerm)')
+            .orWhere('LOWER(submission.language) LIKE LOWER(:searchTerm)');
+        }),
+        { searchTerm: searchLower }
+      );
+    }
+
+    // 2. Specific Filters
+    if (filters?.questionName) {
+      queryBuilder.andWhere('LOWER(question.title) LIKE LOWER(:questionName)', {
+        questionName: `%${filters.questionName}%`
+      });
+    }
+
+    if (filters?.listName) {
+      queryBuilder.andWhere('LOWER(questionList.title) LIKE LOWER(:listName)', {
+        listName: `%${filters.listName}%`
+      });
+    }
+
+    if (filters?.userName) {
+      queryBuilder.andWhere('LOWER(user.name) LIKE LOWER(:userName)', {
+        userName: `%${filters.userName}%`
+      });
+    }
+
+    if (filters?.language) {
+      queryBuilder.andWhere('submission.language = :language', {
+        language: filters.language
+      });
+    }
 
     if (filters?.verdict) {
       if (filters.verdict.toLowerCase() === 'failed') {
@@ -156,17 +190,18 @@ export class SubmissionRepository extends BaseRepository<Submission> {
       queryBuilder.andWhere('submission.status = :status', { status: filters.status });
     }
 
+    // Ordenar e Paginar
     queryBuilder.orderBy('submission.createdAt', 'DESC');
 
-    const total = await queryBuilder.getCount();
-
+    // Use getManyAndCount to handle joins properly without duplicates if needed, 
+    // but with skip/take on queryBuilder it handles the pagination on the main entity.
     const page = filters?.page || 1;
     const limit = filters?.limit || 20;
     const skip = (page - 1) * limit;
 
     queryBuilder.skip(skip).take(limit);
 
-    const submissions = await queryBuilder.getMany();
+    const [submissions, total] = await queryBuilder.getManyAndCount();
 
     return { submissions, total };
   }
