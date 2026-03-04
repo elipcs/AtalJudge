@@ -148,15 +148,27 @@ export class QuestionList {
    */
   calculateMaxPossibleScore(): number {
     if (this.scoringMode === 'simple') {
-      return this.maxScore;
+      return this.getQuestionCount() * 100;
     }
 
     // Groups mode
     if (!this.questionGroups || this.questionGroups.length === 0) {
-      return this.maxScore;
+      return this.getQuestionCount() * 100;
     }
 
-    return this.questionGroups.reduce((sum, group) => sum + group.weight, 0);
+    // Sum of group weights * 100
+    let max = this.questionGroups.reduce((sum, group) => sum + (group.weight * 100), 0);
+
+    // Add 100 for each question NOT in a group
+    if (this.questions) {
+      this.questions.forEach(q => {
+        if (!this.getQuestionGroup(q.id)) {
+          max += 100;
+        }
+      });
+    }
+
+    return max;
   }
 
   /**

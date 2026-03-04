@@ -142,10 +142,10 @@ export class SubmissionRepository extends BaseRepository<Submission> {
       const searchLower = `%${searchTerm.toLowerCase()}%`;
       queryBuilder.andWhere(
         new Brackets((qb: any) => {
-          qb.where('LOWER(question.title) LIKE LOWER(:searchTerm)')
-            .orWhere('LOWER(questionList.title) LIKE LOWER(:searchTerm)')
-            .orWhere('LOWER(user.name) LIKE LOWER(:searchTerm)')
-            .orWhere('LOWER(submission.language) LIKE LOWER(:searchTerm)');
+          qb.where('LOWER(question.title) LIKE :searchTerm')
+            .orWhere('LOWER(questionList.title) LIKE :searchTerm')
+            .orWhere('LOWER(user.name) LIKE :searchTerm')
+            .orWhere('LOWER(submission.language::text) LIKE :searchTerm');
         }),
         { searchTerm: searchLower }
       );

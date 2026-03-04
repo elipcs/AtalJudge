@@ -27,7 +27,7 @@ export class CalculateGradeUseCase implements IUseCase<CalculateGradeUseCaseInpu
     @inject(GradeRepository) private gradeRepository: GradeRepository,
     @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
     @inject(SubmissionRepository) private submissionRepository: SubmissionRepository
-  ) {}
+  ) { }
 
   async execute(input: CalculateGradeUseCaseInput): Promise<GradeResponseDTO> {
     const { studentId, questionListId } = input;
@@ -49,7 +49,7 @@ export class CalculateGradeUseCase implements IUseCase<CalculateGradeUseCaseInpu
     // 3. Find all student submissions for list questions
     const questionIds = questionList.questions!.map(q => q.id);
     const allSubmissions = await Promise.all(
-      questionIds.map(questionId => 
+      questionIds.map(questionId =>
         this.submissionRepository.findByUserAndQuestion(studentId, questionId)
       )
     );
@@ -59,25 +59,28 @@ export class CalculateGradeUseCase implements IUseCase<CalculateGradeUseCaseInpu
 
     if (questionList.usesGroupScoring()) {
       // Group system: best submission per group
-      const groups = new Map<string, number>();
-      
+      const groupBestScores = new Map<string, number>();
+
       questionList.questions!.forEach((question, index) => {
         const submissions = allSubmissions[index];
         const bestScore = this.getBestScore(submissions);
         const group = questionList.getQuestionGroup(question.id);
-        
+
         if (group) {
           const groupId = group.id;
-          const currentGroupScore = groups.get(groupId) || 0;
-          groups.set(groupId, Math.max(currentGroupScore, bestScore));
+          const currentBest = groupBestScores.get(groupId) || 0;
+          groupBestScores.set(groupId, Math.max(currentBest, bestScore));
         } else {
+          // Question not in any group
           totalScore += bestScore;
         }
       });
 
-      // Sum group scores
-      groups.forEach(score => {
-        totalScore += score;
+      // Sum weighted group scores
+      groupBestScores.forEach((score, groupId) => {
+        const group = questionList.questionGroups.find(g => g.id === groupId);
+        const weight = group ? group.weight : 1;
+        totalScore += score * weight;
       });
     } else {
       // Simple system: sum of all submissions
@@ -90,9 +93,9 @@ export class CalculateGradeUseCase implements IUseCase<CalculateGradeUseCaseInpu
     const maxScore = questionList.calculateMaxPossibleScore();
     const normalizedScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
-    logger.info('[CalculateGradeUseCase] Grade calculated', { 
-      studentId, 
-      questionListId, 
+    logger.info('[CalculateGradeUseCase] Grade calculated', {
+      studentId,
+      questionListId,
       normalizedScore,
       totalScore,
       maxScore
