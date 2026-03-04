@@ -7,6 +7,7 @@
  * @module middlewares/rate-limit
  */
 import rateLimit from 'express-rate-limit';
+import { config } from '../config';
 
 /**
  * Rate limiter for authentication endpoints
@@ -15,57 +16,54 @@ import rateLimit from 'express-rate-limit';
  * Window: 15 minutes, Max: 100 requests
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 60000, 
-  max: 100, 
-  message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
+  windowMs: config.limits.rateLimitWindowMs,
+  max: config.limits.rateLimitMaxRequests,
+  message: 'Muitas tentativas de login. Tente novamente mais tarde.',
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: false, 
+  skipSuccessfulRequests: false,
   handler: (_req, res) => {
     res.status(429).json({
       success: false,
-      message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
-      error: 'TOO_MANY_REQUESTS',
-      retryAfter: '15 minutos'
+      message: 'Muitas tentativas de login. Tente novamente mais tarde.',
+      error: 'TOO_MANY_REQUESTS'
     });
   }
 });
 
 export const registerRateLimiter = rateLimit({
-  windowMs: 60000, 
-  max: 100, 
-  message: 'Muitas tentativas de registro. Tente novamente em 1 hora.',
+  windowMs: config.limits.rateLimitWindowMs,
+  max: config.limits.rateLimitMaxRequests,
+  message: 'Muitas tentativas de registro. Tente novamente mais tarde.',
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
     res.status(429).json({
       success: false,
-      message: 'Muitas tentativas de registro. Tente novamente em 1 hora.',
-      error: 'TOO_MANY_REQUESTS',
-      retryAfter: '1 hora'
+      message: 'Muitas tentativas de registro. Tente novamente mais tarde.',
+      error: 'TOO_MANY_REQUESTS'
     });
   }
 });
 
 export const passwordResetRateLimiter = rateLimit({
-  windowMs: 60000, 
-  max: 100, 
-  message: 'Muitas tentativas de recuperação de senha. Tente novamente em 1 hora.',
+  windowMs: config.limits.rateLimitWindowMs,
+  max: config.limits.rateLimitMaxRequests,
+  message: 'Muitas tentativas de recuperação de senha. Tente novamente mais tarde.',
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {
     res.status(429).json({
       success: false,
-      message: 'Muitas tentativas de recuperação de senha. Tente novamente em 1 hora.',
-      error: 'TOO_MANY_REQUESTS',
-      retryAfter: '1 hora'
+      message: 'Muitas tentativas de recuperação de senha. Tente novamente mais tarde.',
+      error: 'TOO_MANY_REQUESTS'
     });
   }
 });
 
 export const submissionRateLimiter = rateLimit({
-  windowMs: 60000, 
-  max: 10, 
+  windowMs: config.limits.rateLimitWindowMs,
+  max: config.limits.submissionMaxRequests,
   message: 'Muitas submissões. Aguarde um momento.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -73,8 +71,7 @@ export const submissionRateLimiter = rateLimit({
     res.status(429).json({
       success: false,
       message: 'Muitas submissões. Aguarde um momento antes de tentar novamente.',
-      error: 'TOO_MANY_REQUESTS',
-      retryAfter: '1 minuto'
+      error: 'TOO_MANY_REQUESTS'
     });
   }
 });

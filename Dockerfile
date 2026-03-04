@@ -20,8 +20,8 @@ RUN bun run build
 FROM oven/bun:1-alpine
 WORKDIR /app
 
-# Install Docker CLI for LocalExecutionService
-RUN apk add --no-cache docker-cli
+# Install Docker CLI and curl for healthchecks and LocalExecutionService
+RUN apk add --no-cache docker-cli curl
 
 # Copy Backend Build
 COPY --from=backend-builder /app/dist ./dist

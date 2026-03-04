@@ -196,11 +196,18 @@ export function createApp(): Application {
   });
 
   const generalLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000,
-    max: 100,
+    windowMs: config.limits.rateLimitWindowMs,
+    max: config.limits.rateLimitMaxRequests,
     message: 'Too many requests from this IP, try again later.',
     standardHeaders: true,
     legacyHeaders: false,
+    handler: (_req, res) => {
+      res.status(429).json({
+        success: false,
+        message: 'Muitas requisições deste IP. Tente novamente mais tarde.',
+        error: 'TOO_MANY_REQUESTS'
+      });
+    }
   });
   app.use('/api/', generalLimiter);
 
@@ -389,9 +396,22 @@ export function createApp(): Application {
     if (req.path.startsWith('/api')) {
       return next();
     }
-    // Explicitly set content type to avoid browsers misinterpreting as .txt in some environments
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.sendFile(path.join(clientPath, 'index.html'));
+
+    // Explicitly set headers and send index.html
+    res.sendFile(path.join(clientPath, 'index.html'), {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'X-Content-Type-Options': 'nosniff'
+      }
+    }, (err) => {
+      if (err) {
+        logger.error('[SPA] Error sending index.html', { path: req.path, error: err });
+        // Don't call next(err) here to avoid infinite loops if error handler also fails
+        if (!res.headersSent) {
+          res.status(500).send('Error loading application');
+        }
+      }
+    });
   });
 
   app.use(notFoundHandler);

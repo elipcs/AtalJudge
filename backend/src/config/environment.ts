@@ -87,7 +87,10 @@ export const config = {
     defaultWallTimeLimit: parseFloat(process.env.DEFAULT_WALL_TIME_LIMIT || '5.0'),
     defaultMemoryLimitKB: parseInt(process.env.DEFAULT_MEMORY_LIMIT_KB || '262144', 10),
     maxSubmissionsPerMinute: parseInt(process.env.MAX_SUBMISSIONS_PER_MINUTE || '5', 10),
-    javaStartupOffset: parseFloat(process.env.JAVA_STARTUP_OFFSET || '0.5')
+    javaStartupOffset: parseFloat(process.env.JAVA_STARTUP_OFFSET || '0.5'),
+    rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute
+    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10000', 10),
+    submissionMaxRequests: parseInt(process.env.SUBMISSION_MAX_REQUESTS || '1000', 10)
   }
 };
 
