@@ -19,9 +19,12 @@ export interface SearchSubmissionsInput {
 
 export interface SearchSubmissionsOutput {
   submissions: SubmissionResponseDTO[];
-  total: number;
-  page: number;
-  limit: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 /**
@@ -66,15 +69,21 @@ export class SearchSubmissionsUseCase implements IUseCase<SearchSubmissionsInput
       }
     );
 
-    // 4. Convert to DTOs
+    // 4. Calculate pagination
+    const totalPages = Math.ceil(total / limit);
+
+    // 5. Convert to DTOs
     const submissions = rawSubmissions.map(submission => SubmissionMapper.toDTO(submission));
 
-    // 5. Return with pagination metadata
+    // 6. Return with pagination metadata
     return {
       submissions,
-      total,
-      page,
-      limit,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
     };
   }
 }
