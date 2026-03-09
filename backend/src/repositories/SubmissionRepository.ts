@@ -128,6 +128,7 @@ export class SubmissionRepository extends BaseRepository<Submission> {
       language?: string;
       verdict?: string;
       status?: SubmissionStatus;
+      userId?: string;
       page?: number;
       limit?: number;
     }
@@ -188,6 +189,10 @@ export class SubmissionRepository extends BaseRepository<Submission> {
 
     if (filters?.status) {
       queryBuilder.andWhere('submission.status = :status', { status: filters.status });
+    }
+
+    if (filters?.userId) {
+      queryBuilder.andWhere('submission.userId = :userId', { userId: filters.userId });
     }
 
     // Ordenar e Paginar

@@ -79,7 +79,9 @@ function createSubmissionController(
         verdict: req.query.verdict as string,
         status: req.query.status as SubmissionStatus,
         page,
-        limit
+        limit,
+        requestUserId: req.user?.sub,
+        requestUserRole: req.user?.role as UserRole
       });
 
       successResponse(res, result, 'Search results');

@@ -1,8 +1,8 @@
 import { injectable, inject } from 'tsyringe';
 import { IUseCase } from '../interfaces/IUseCase';
 import { SubmissionResponseDTO } from '../../dtos';
-import { SubmissionRepository } from '../../repositories';
-import { SubmissionStatus } from '../../enums';
+import { SubmissionRepository } from '../../repositories/SubmissionRepository';
+import { SubmissionStatus, UserRole } from '../../enums';
 import { SubmissionMapper } from '../../mappers';
 
 export interface SearchSubmissionsInput {
@@ -15,6 +15,8 @@ export interface SearchSubmissionsInput {
   status?: SubmissionStatus;
   page?: number;
   limit?: number;
+  requestUserId?: string;
+  requestUserRole?: UserRole;
 }
 
 export interface SearchSubmissionsOutput {
@@ -55,6 +57,9 @@ export class SearchSubmissionsUseCase implements IUseCase<SearchSubmissionsInput
     const limit = input.limit || 20;
 
     // 3. Search submissions with filters
+    // If user is a student, restrict results to their own submissions
+    const userId = input.requestUserRole === UserRole.STUDENT ? input.requestUserId : undefined;
+
     const { submissions: rawSubmissions, total } = await this.submissionRepository.searchGlobal(
       input.searchTerm,
       {
@@ -64,6 +69,7 @@ export class SearchSubmissionsUseCase implements IUseCase<SearchSubmissionsInput
         language: input.language,
         verdict: input.verdict,
         status: input.status,
+        userId,
         page,
         limit,
       }
