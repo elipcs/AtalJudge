@@ -26,7 +26,7 @@ export class BulkUpdateTestCasesUseCase implements IUseCase<BulkUpdateTestCasesU
   constructor(
     @inject(TestCaseRepository) private testCaseRepository: TestCaseRepository,
     @inject(QuestionRepository) private questionRepository: QuestionRepository
-  ) {}
+  ) { }
 
   async execute(input: BulkUpdateTestCasesUseCaseInput): Promise<TestCaseResponseDTO[]> {
     const { questionId, dto } = input;
@@ -40,7 +40,7 @@ export class BulkUpdateTestCasesUseCase implements IUseCase<BulkUpdateTestCasesU
     // 2. Buscar casos de teste existentes
     const existingTestCases = await this.testCaseRepository.findByQuestion(questionId);
     const existingIds = new Set(existingTestCases.map(tc => tc.id));
-    
+
     // 3. Separar novos e existentes
     const testCasesToCreate: TestCase[] = [];
     const testCasesToUpdate: TestCase[] = [];
@@ -54,6 +54,7 @@ export class BulkUpdateTestCasesUseCase implements IUseCase<BulkUpdateTestCasesU
           existing.input = tcDto.input;
           existing.expectedOutput = tcDto.expectedOutput;
           existing.weight = tcDto.weight;
+          existing.isHidden = tcDto.isHidden ?? false;
           testCasesToUpdate.push(existing);
           submittedIds.add(tcDto.id);
         }
@@ -64,6 +65,7 @@ export class BulkUpdateTestCasesUseCase implements IUseCase<BulkUpdateTestCasesU
         newTestCase.input = tcDto.input;
         newTestCase.expectedOutput = tcDto.expectedOutput;
         newTestCase.weight = tcDto.weight;
+        newTestCase.isHidden = tcDto.isHidden ?? false;
         testCasesToCreate.push(newTestCase);
       }
     }
@@ -92,7 +94,8 @@ export class BulkUpdateTestCasesUseCase implements IUseCase<BulkUpdateTestCasesU
       await this.testCaseRepository.update(tc.id, {
         input: tc.input,
         expectedOutput: tc.expectedOutput,
-        weight: tc.weight
+        weight: tc.weight,
+        isHidden: tc.isHidden
       });
       results.push(tc);
     }
@@ -114,6 +117,7 @@ export class BulkUpdateTestCasesUseCase implements IUseCase<BulkUpdateTestCasesU
       input: tc.input,
       expectedOutput: tc.expectedOutput,
       weight: tc.weight,
+      isHidden: tc.isHidden,
       createdAt: tc.createdAt
     }));
   }

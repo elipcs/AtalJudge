@@ -9,7 +9,7 @@ import { ConflictError } from '../../utils';
 export class CreateTestCaseUseCase implements IUseCase<CreateTestCaseDTO, TestCaseResponseDTO> {
   constructor(
     @inject(TestCaseRepository) private testCaseRepository: TestCaseRepository
-  ) {}
+  ) { }
 
   async execute(data: CreateTestCaseDTO): Promise<TestCaseResponseDTO> {
     // Check if a test case with same input/output combination already exists
@@ -30,9 +30,10 @@ export class CreateTestCaseUseCase implements IUseCase<CreateTestCaseDTO, TestCa
       questionId: data.questionId,
       input: data.input,
       expectedOutput: data.expectedOutput,
-      weight: data.weight ?? 1
+      weight: data.weight ?? 1,
+      isHidden: data.isHidden ?? false
     });
-    
+
     return TestCaseMapper.toDTO(testCase);
   }
 }

@@ -16,17 +16,17 @@ export interface UpdateTestCaseInput {
 export class UpdateTestCaseUseCase implements IUseCase<UpdateTestCaseInput, TestCaseResponseDTO> {
   constructor(
     @inject(TestCaseRepository) private testCaseRepository: TestCaseRepository
-  ) {}
+  ) { }
 
   async execute(input: UpdateTestCaseInput): Promise<TestCaseResponseDTO> {
     const { id, data } = input;
 
     const testCase = await this.testCaseRepository.findById(id);
-    
+
     if (!testCase) {
       throw new NotFoundError('Test case not found', 'TESTCASE_NOT_FOUND');
     }
-    
+
     // Check if input or output is being updated
     const inputChanged = data.input !== undefined && data.input !== testCase.input;
     const outputChanged = data.expectedOutput !== undefined && data.expectedOutput !== testCase.expectedOutput;
@@ -50,18 +50,19 @@ export class UpdateTestCaseUseCase implements IUseCase<UpdateTestCaseInput, Test
         );
       }
     }
-    
+
     const updateData: DeepPartial<TestCase> = {};
     if (data.input !== undefined) updateData.input = data.input;
     if (data.expectedOutput !== undefined) updateData.expectedOutput = data.expectedOutput;
     if (data.weight !== undefined) updateData.weight = data.weight;
-    
+    if (data.isHidden !== undefined) updateData.isHidden = data.isHidden;
+
     const updated = await this.testCaseRepository.update(id, updateData);
-    
+
     if (!updated) {
       throw new InternalServerError('Error updating test case', 'UPDATE_ERROR');
     }
-    
+
     return TestCaseMapper.toDTO(updated);
   }
 }
