@@ -8,6 +8,7 @@ import Link from "next/link";
 import PageLoading from "@/components/PageLoading";
 import { useToast } from "@/hooks/use-toast";
 import { Question } from "@/types";
+import { useUserRoleContext } from "@/contexts/UserRoleContext";
 import * as api from "@/config/api";
 import QuestionModal from "@/components/lists/QuestionModal";
 
@@ -27,6 +28,7 @@ interface QuestionFormData {
 export default function EditQuestionClientPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { userRole, isLoading: isRoleLoading } = useUserRoleContext();
     const { toast } = useToast();
     const questionId = searchParams.get('id') || '';
 
@@ -118,8 +120,18 @@ export default function EditQuestionClientPage() {
         router.push(`/questoes/detalhes?id=${questionId}`);
     };
 
-    if (loading) {
+    useEffect(() => {
+        if (!isRoleLoading && userRole === 'student') {
+            router.replace('/nao-autorizado');
+        }
+    }, [userRole, isRoleLoading, router]);
+
+    if (loading || isRoleLoading) {
         return <PageLoading message="Carregando questão..." />;
+    }
+
+    if (userRole === 'student') {
+        return null;
     }
 
     if (!question) {

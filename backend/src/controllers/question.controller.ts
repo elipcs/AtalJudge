@@ -72,6 +72,7 @@ function createQuestionController(
   router.get(
     '/',
     authenticate,
+    requireTeacher,
     asyncHandler(async (_req: AuthRequest, res: Response): Promise<void> => {
       const questions = await getAllQuestionsUseCase.execute();
 
@@ -82,6 +83,7 @@ function createQuestionController(
   router.get(
     '/search/global',
     authenticate,
+    requireTeacher,
     asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
       const searchTerm = req.query.q as string;
       const page = parseInt(req.query.page as string) || 1;

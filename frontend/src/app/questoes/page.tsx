@@ -15,6 +15,7 @@ import QuestionModal from "@/components/lists/QuestionModal";
 import TestCasesModal from "@/components/questions/TestCasesModal";
 import ImportQuestionsModal from "@/components/questions/ImportQuestionsModal";
 import { formatTimeLimit, formatMemoryLimit } from "@/utils/timeMemoryConverter";
+import { useUserRoleContext } from "@/contexts/UserRoleContext";
 
 interface QuestionsPageState {
     questions: Question[];
@@ -30,6 +31,7 @@ interface QuestionsPageState {
 
 export default function QuestoesPage() {
     const router = useRouter();
+    const { userRole, isLoading: isRoleLoading } = useUserRoleContext();
     const { toast } = useToast();
     const [state, setState] = useState<QuestionsPageState>({
         questions: [],
@@ -172,8 +174,18 @@ export default function QuestoesPage() {
         return colors[index % colors.length];
     };
 
-    if (state.loading) {
+    useEffect(() => {
+        if (!isRoleLoading && userRole === 'student') {
+            router.replace('/nao-autorizado');
+        }
+    }, [userRole, isRoleLoading, router]);
+
+    if (state.loading || isRoleLoading) {
         return <PageLoading message="Carregando questões..." />;
+    }
+
+    if (userRole === 'student') {
+        return null;
     }
 
     return (

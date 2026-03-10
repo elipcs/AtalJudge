@@ -12,7 +12,7 @@ import * as api from "@/config/api";
 import CodeSubmission from "@/components/questions/CodeSubmission";
 import dynamic from "next/dynamic";
 import { formatTimeLimit, formatMemoryLimit } from "@/utils/timeMemoryConverter";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRoleContext } from "@/contexts/UserRoleContext";
 
 const MarkdownRenderer = dynamic(() => import("@/components/MarkdownRenderer"), { ssr: false });
 
@@ -20,27 +20,19 @@ export default function QuestionDetailPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
+    const { userRole, isLoading: isRoleLoading } = useUserRoleContext();
     const questionId = searchParams.get('id') || '';
-
-    const { userRole, isLoading: userRoleLoading } = useUserRole();
 
     const [question, setQuestion] = useState<Question | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!userRoleLoading) {
-            if (userRole === 'student') {
-                toast({
-                    title: "Acesso Negado",
-                    description: "Estudantes não podem acessar os detalhes da questão diretamente.",
-                    variant: "destructive",
-                });
-                router.push("/questoes");
-            } else {
-                loadQuestion();
-            }
+        if (!isRoleLoading && userRole === 'student') {
+            router.replace('/nao-autorizado');
+        } else if (!isRoleLoading && !loading) {
+            loadQuestion();
         }
-    }, [questionId, userRole, userRoleLoading]);
+    }, [questionId, userRole, isRoleLoading]);
 
     const loadQuestion = async () => {
         if (!questionId) return;
@@ -72,8 +64,12 @@ export default function QuestionDetailPage() {
         }
     };
 
-    if (loading || userRoleLoading) {
-        return <PageLoading message="Carregando questão..." />;
+    if (loading || isRoleLoading) {
+        return <PageLoading message="Carregando detalhes da questão..." description="Preparando as informações" />;
+    }
+
+    if (userRole === 'student') {
+        return null;
     }
 
     if (!question) {
