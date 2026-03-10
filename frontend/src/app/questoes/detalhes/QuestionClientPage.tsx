@@ -12,6 +12,7 @@ import * as api from "@/config/api";
 import CodeSubmission from "@/components/questions/CodeSubmission";
 import dynamic from "next/dynamic";
 import { formatTimeLimit, formatMemoryLimit } from "@/utils/timeMemoryConverter";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const MarkdownRenderer = dynamic(() => import("@/components/MarkdownRenderer"), { ssr: false });
 
@@ -21,12 +22,25 @@ export default function QuestionDetailPage() {
     const { toast } = useToast();
     const questionId = searchParams.get('id') || '';
 
+    const { userRole, isLoading: userRoleLoading } = useUserRole();
+
     const [question, setQuestion] = useState<Question | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        loadQuestion();
-    }, [questionId]);
+        if (!userRoleLoading) {
+            if (userRole === 'student') {
+                toast({
+                    title: "Acesso Negado",
+                    description: "Estudantes não podem acessar os detalhes da questão diretamente.",
+                    variant: "destructive",
+                });
+                router.push("/questoes");
+            } else {
+                loadQuestion();
+            }
+        }
+    }, [questionId, userRole, userRoleLoading]);
 
     const loadQuestion = async () => {
         if (!questionId) return;
@@ -58,7 +72,7 @@ export default function QuestionDetailPage() {
         }
     };
 
-    if (loading) {
+    if (loading || userRoleLoading) {
         return <PageLoading message="Carregando questão..." />;
     }
 

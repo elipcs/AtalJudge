@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IUseCase } from '../interfaces/IUseCase';
 import { CreateSubmissionDTO, SubmissionResponseDTO } from '../../dtos';
-import { SubmissionRepository, QuestionRepository } from '../../repositories';
+import { SubmissionRepository, QuestionRepository, QuestionListRepository } from '../../repositories';
 import { SubmissionQueueService } from '../../services/SubmissionQueueService';
 import { SubmissionStatus, ProgrammingLanguage } from '../../enums';
 import { logger, ValidationError, NotFoundError } from '../../utils';
@@ -33,6 +33,7 @@ export class CreateSubmissionUseCase implements IUseCase<CreateSubmissionUseCase
   constructor(
     @inject(SubmissionRepository) private submissionRepository: SubmissionRepository,
     @inject(QuestionRepository) private questionRepository: QuestionRepository,
+    @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
     @inject(AllowedIPService) private allowedIPService: AllowedIPService,
     @inject('SubmissionQueueService') private queueService?: SubmissionQueueService
   ) { }
@@ -59,6 +60,21 @@ export class CreateSubmissionUseCase implements IUseCase<CreateSubmissionUseCase
     const question = await this.questionRepository.findById(dto.questionId);
     if (!question) {
       throw new NotFoundError('Question not found', 'QUESTION_NOT_FOUND');
+    }
+
+    // 2.5 Block submissions if question is only in closed lists (for students)
+    if (userRole === UserRole.STUDENT) {
+      const listsWithQuestion = await this.questionListRepository.findAllByQuestionId(dto.questionId);
+
+      if (listsWithQuestion.length > 0) {
+        // Find if there's at least one list that is NOT closed
+        const hasOpenList = listsWithQuestion.some(list => !list.isClosed());
+
+        if (!hasOpenList) {
+          logger.warn('[CreateSubmissionUseCase] Submission blocked: all lists containing this question are closed', { userId, questionId: dto.questionId });
+          throw new ForbiddenError('Não é possível submeter soluções para uma questão que pertence apenas a listas fechadas.', 'LIST_CLOSED');
+        }
+      }
     }
 
     // 3. Create submission in database

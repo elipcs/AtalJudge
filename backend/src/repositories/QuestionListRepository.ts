@@ -159,5 +159,12 @@ export class QuestionListRepository extends BaseRepository<QuestionList> {
       .innerJoin('question_list.questions', 'question', 'question.id = :questionId', { questionId })
       .getOne();
   }
+
+  async findAllByQuestionId(questionId: string): Promise<QuestionList[]> {
+    return this.repository
+      .createQueryBuilder('question_list')
+      .innerJoin('question_list.questions', 'question', 'question.id = :questionId', { questionId })
+      .getMany();
+  }
 }
 

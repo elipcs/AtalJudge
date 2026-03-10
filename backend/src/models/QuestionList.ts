@@ -148,12 +148,20 @@ export class QuestionList {
    */
   calculateMaxPossibleScore(): number {
     if (this.scoringMode === 'simple') {
-      return this.getQuestionCount() * 100;
+      const questionCount = this.minQuestionsForMaxScore || this.getQuestionCount();
+      return questionCount * 100;
     }
 
     // Groups mode
     if (!this.questionGroups || this.questionGroups.length === 0) {
       return this.getQuestionCount() * 100;
+    }
+
+    // Check if using percentages
+    const usesPercentages = this.questionGroups.some(g => g.percentage !== undefined);
+    if (usesPercentages) {
+      // With percentages, the total calculation is designed to equal 100 by aggregating percent portions
+      return 100;
     }
 
     // Sum of group weights * 100

@@ -79,19 +79,36 @@ export class CalculateGradeUseCase implements IUseCase<CalculateGradeUseCaseInpu
       // Sum weighted group scores
       groupBestScores.forEach((score, groupId) => {
         const group = questionList.questionGroups.find(g => g.id === groupId);
-        const weight = group ? group.weight : 1;
-        totalScore += score * weight;
+        if (group) {
+          if (group.percentage !== undefined) {
+            totalScore += score * (group.percentage / 100);
+          } else {
+            totalScore += score * (group.weight || 1);
+          }
+        }
       });
     } else {
-      // Simple system: sum of all submissions
-      allSubmissions.forEach(submissions => {
-        totalScore += this.getBestScore(submissions);
-      });
+      // Simple system: best scores taking into account minQuestionsForMaxScore
+      const scores = allSubmissions.map(submissions => this.getBestScore(submissions));
+      // Sort scores descending to pick the best ones
+      scores.sort((a, b) => b - a);
+
+      const limit = questionList.minQuestionsForMaxScore || scores.length;
+
+      // sum up to the limit
+      for (let i = 0; i < Math.min(limit, scores.length); i++) {
+        totalScore += scores[i];
+      }
     }
 
     // 5. Normalize score to 0-100
     const maxScore = questionList.calculateMaxPossibleScore();
-    const normalizedScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+    let normalizedScore = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+
+    // Clamp to 100 to prevent overflow
+    if (normalizedScore > 100) {
+      normalizedScore = 100;
+    }
 
     logger.info('[CalculateGradeUseCase] Grade calculated', {
       studentId,
