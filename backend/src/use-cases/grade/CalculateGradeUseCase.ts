@@ -76,15 +76,13 @@ export class CalculateGradeUseCase implements IUseCase<CalculateGradeUseCaseInpu
         }
       });
 
-      // Sum weighted group scores
-      groupBestScores.forEach((score, groupId) => {
-        const group = questionList.questionGroups.find(g => g.id === groupId);
-        if (group) {
-          if (group.percentage !== undefined) {
-            totalScore += score * (group.percentage / 100);
-          } else {
-            totalScore += score * (group.weight || 1);
-          }
+      // Sum weighted group scores for ALL groups defined in the list
+      questionList.questionGroups.forEach(group => {
+        const score = groupBestScores.get(group.id) || 0;
+        if (group.percentage !== undefined) {
+          totalScore += score * (group.percentage / 100);
+        } else {
+          totalScore += score * (group.weight || 1);
         }
       });
     } else {

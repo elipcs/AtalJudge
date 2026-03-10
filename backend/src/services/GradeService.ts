@@ -32,7 +32,7 @@ export class GradeService {
     @inject(UserRepository) private userRepository: UserRepository,
     @inject(QuestionListRepository) private questionListRepository: QuestionListRepository,
     @inject(SubmissionRepository) private submissionRepository: SubmissionRepository
-  ) {}
+  ) { }
 
   /**
    * Gets a grade by ID.
@@ -44,11 +44,11 @@ export class GradeService {
    */
   async getGradeById(id: string): Promise<GradeResponseDTO> {
     const grade = await this.gradeRepository.findById(id);
-    
+
     if (!grade) {
       throw new NotFoundError('Grade not found', 'GRADE_NOT_FOUND');
     }
-    
+
     return new GradeResponseDTO({
       id: grade.id,
       studentId: grade.studentId,
@@ -63,11 +63,11 @@ export class GradeService {
 
   async getGradeByStudentAndList(studentId: string, questionListId: string): Promise<GradeResponseDTO | null> {
     const grade = await this.gradeRepository.findByStudentAndList(studentId, questionListId);
-    
+
     if (!grade) {
       return null;
     }
-    
+
     return new GradeResponseDTO({
       id: grade.id,
       studentId: grade.studentId,
@@ -82,7 +82,7 @@ export class GradeService {
 
   async getGradesByStudent(studentId: string): Promise<GradeResponseDTO[]> {
     const grades = await this.gradeRepository.findByStudent(studentId);
-    
+
     return grades.map(grade => new GradeResponseDTO({
       id: grade.id,
       studentId: grade.studentId,
@@ -96,7 +96,7 @@ export class GradeService {
 
   async getGradesByList(questionListId: string): Promise<GradeResponseDTO[]> {
     const grades = await this.gradeRepository.findByList(questionListId);
-    
+
     return grades.map(grade => new GradeResponseDTO({
       id: grade.id,
       studentId: grade.studentId,
@@ -136,15 +136,15 @@ export class GradeService {
     }
 
     const questionIds = questionList.questions.map(q => q.id);
-    
+
     const allSubmissions = await Promise.all(
-      questionIds.map(questionId => 
+      questionIds.map(questionId =>
         this.submissionRepository.findByUserAndQuestion(studentId, questionId)
       )
     );
 
     const bestScoresByQuestion = new Map<string, number>();
-    
+
     allSubmissions.flat().forEach(submission => {
       const currentBest = bestScoresByQuestion.get(submission.questionId) || 0;
       if (submission.score > currentBest) {
@@ -152,10 +152,10 @@ export class GradeService {
       }
     });
 
-    logger.debug('Best scores per question', { 
-      studentId, 
-      questionListId, 
-      bestScores: Array.from(bestScoresByQuestion.entries()) 
+    logger.debug('Best scores per question', {
+      studentId,
+      questionListId,
+      bestScores: Array.from(bestScoresByQuestion.entries())
     });
 
     let finalScore = 0;
@@ -164,18 +164,18 @@ export class GradeService {
       const n = questionList.minQuestionsForMaxScore || questionList.questions.length;
       const scores = Array.from(bestScoresByQuestion.values()).sort((a, b) => b - a);
       const topNScores = scores.slice(0, n);
-      
-      if (topNScores.length > 0) {
-        const averageScore = topNScores.reduce((sum, score) => sum + score, 0) / topNScores.length;
-        finalScore = Math.round((averageScore / 100) * questionList.maxScore);
-      }
+
+      const sumTopScores = topNScores.reduce((sum, score) => sum + score, 0);
+      const averageScore = sumTopScores / n; // Correct divisor: always N
+      finalScore = Math.round((averageScore / 100) * questionList.maxScore);
 
       logger.info('Grade calculated (simple mode)', {
         studentId,
         questionListId,
         n,
-        topNScores,
-        averageScore: topNScores.length > 0 ? topNScores.reduce((sum, score) => sum + score, 0) / topNScores.length : 0,
+        topNScoresCount: topNScores.length,
+        sumTopScores,
+        averageScore,
         finalScore,
         maxScore: questionList.maxScore
       });
@@ -200,21 +200,19 @@ export class GradeService {
           }
         });
 
-        if (groupScores.length > 0) {
-          const bestGroupScore = Math.max(...groupScores);
-          const groupWeight = group.weight || 1;
-          totalWeightedScore += bestGroupScore * groupWeight;
-          totalWeight += groupWeight;
+        const bestGroupScore = groupScores.length > 0 ? Math.max(...groupScores) : 0;
+        const groupWeight = group.weight || 1;
+        totalWeightedScore += bestGroupScore * groupWeight;
+        totalWeight += groupWeight;
 
-          logger.debug('Group score', {
-            studentId,
-            questionListId,
-            groupName: group.name,
-            groupScores,
-            bestGroupScore,
-            groupWeight
-          });
-        }
+        logger.debug('Group score details', {
+          studentId,
+          questionListId,
+          groupName: group.name,
+          groupScoresCount: groupScores.length,
+          bestGroupScore,
+          groupWeight
+        });
       });
 
       if (totalWeight > 0) {
@@ -245,23 +243,23 @@ export class GradeService {
    * @throws {InternalServerError} If update fails
    */
   async upsertGrade(data: CreateGradeDTO): Promise<GradeResponseDTO> {
-    
+
     const student = await this.userRepository.findById(data.studentId);
-    
+
     if (!student) {
       throw new NotFoundError('Student not found', 'STUDENT_NOT_FOUND');
     }
 
     const questionList = await this.questionListRepository.findById(data.questionListId);
-    
+
     if (!questionList) {
       throw new NotFoundError('List not found', 'LIST_NOT_FOUND');
     }
 
     const existingGrade = await this.gradeRepository.findByStudentAndList(data.studentId, data.questionListId);
-    
+
     if (existingGrade) {
-      
+
       const updated = await this.gradeRepository.update(existingGrade.id, {
         score: data.score
       });
@@ -287,7 +285,7 @@ export class GradeService {
       questionListId: data.questionListId,
       score: data.score
     });
-    
+
     return new GradeResponseDTO({
       id: grade.id,
       studentId: grade.studentId,
@@ -346,11 +344,11 @@ export class GradeService {
    */
   async updateGrade(id: string, data: UpdateGradeDTO): Promise<GradeResponseDTO> {
     const grade = await this.gradeRepository.findById(id);
-    
+
     if (!grade) {
       throw new NotFoundError('Grade not found', 'GRADE_NOT_FOUND');
     }
-    
+
     const updated = await this.gradeRepository.update(id, {
       score: data.score
     });
@@ -358,7 +356,7 @@ export class GradeService {
     if (!updated) {
       throw new InternalServerError('Error updating grade', 'UPDATE_ERROR');
     }
-    
+
     return new GradeResponseDTO({
       id: updated.id,
       studentId: updated.studentId,
@@ -381,11 +379,11 @@ export class GradeService {
    */
   async deleteGrade(id: string): Promise<void> {
     const grade = await this.gradeRepository.findById(id);
-    
+
     if (!grade) {
       throw new NotFoundError('Grade not found', 'GRADE_NOT_FOUND');
     }
-    
+
     await this.gradeRepository.delete(id);
   }
 
